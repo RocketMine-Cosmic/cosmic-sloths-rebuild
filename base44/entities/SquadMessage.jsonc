@@ -1,0 +1,58 @@
+{
+  "name": "SquadMessage",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet address of the message author",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "player_name": {
+      "type": "string"
+    },
+    "player_title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "squad_id",
+    "wallet_address",
+    "player_name",
+    "content"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

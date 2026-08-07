@@ -1,0 +1,53 @@
+{
+  "name": "MutedWallet",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet address muted from squad chat"
+    },
+    "muted_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the mute expires (ISO). Null/absent = permanent until lifted."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for the mute (visible to mods only)"
+    },
+    "muted_by": {
+      "type": "string",
+      "description": "Admin wallet address who issued the mute"
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Cached player name at time of mute (for admin display)"
+    }
+  },
+  "required": [
+    "wallet_address",
+    "muted_by"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

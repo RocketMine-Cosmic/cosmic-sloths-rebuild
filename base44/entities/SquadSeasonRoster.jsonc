@@ -1,0 +1,91 @@
+{
+  "name": "SquadSeasonRoster",
+  "type": "object",
+  "properties": {
+    "period_id": {
+      "type": "string",
+      "description": "Season id, e.g. 2026-S5"
+    },
+    "squad_id": {
+      "type": "string"
+    },
+    "squad_name": {
+      "type": "string"
+    },
+    "squad_tag": {
+      "type": "string"
+    },
+    "squad_icon": {
+      "type": "string"
+    },
+    "wallet_addresses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Snapshot of squad members at season-end"
+    },
+    "ranking_points": {
+      "type": "number",
+      "default": 0,
+      "description": "wins*3 + ties*1 + byes*1"
+    },
+    "total_kills": {
+      "type": "number",
+      "default": 0,
+      "description": "Total kills across all season wars"
+    },
+    "wars_fought": {
+      "type": "number",
+      "default": 0
+    },
+    "wins": {
+      "type": "number",
+      "default": 0
+    },
+    "losses": {
+      "type": "number",
+      "default": 0
+    },
+    "ties": {
+      "type": "number",
+      "default": 0
+    },
+    "byes": {
+      "type": "number",
+      "default": 0
+    },
+    "final_rank": {
+      "type": "number",
+      "description": "1, 2, or 3 \u2014 set only for top 3 squads"
+    },
+    "champions_pool_share": {
+      "type": "number",
+      "default": 0,
+      "description": "OMENX amount this squad received (0 if not top 3)"
+    }
+  },
+  "required": [
+    "period_id",
+    "squad_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

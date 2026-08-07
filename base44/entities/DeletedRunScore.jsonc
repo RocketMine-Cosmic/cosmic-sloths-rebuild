@@ -1,0 +1,88 @@
+{
+  "name": "DeletedRunScore",
+  "type": "object",
+  "properties": {
+    "original_id": {
+      "type": "string",
+      "description": "The id of the original RunScore record before deletion"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string"
+    },
+    "player_name": {
+      "type": "string"
+    },
+    "player_title": {
+      "type": "string"
+    },
+    "pilot_icon": {
+      "type": "string"
+    },
+    "score": {
+      "type": "number"
+    },
+    "time_survived": {
+      "type": "number"
+    },
+    "level": {
+      "type": "number"
+    },
+    "kills": {
+      "type": "number"
+    },
+    "character_id": {
+      "type": "string"
+    },
+    "arena_id": {
+      "type": "string"
+    },
+    "week_id": {
+      "type": "string"
+    },
+    "season_id": {
+      "type": "string"
+    },
+    "original_created_date": {
+      "type": "string",
+      "description": "Original RunScore.created_date (ISO string) so restore preserves chronology"
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Admin wallet that performed the deletion"
+    },
+    "delete_reason": {
+      "type": "string",
+      "description": "Optional context (duplicate, bulk, fraud, etc)"
+    }
+  },
+  "required": [
+    "original_id",
+    "score",
+    "week_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

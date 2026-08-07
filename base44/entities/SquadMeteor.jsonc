@@ -1,0 +1,54 @@
+{
+  "name": "SquadMeteor",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string",
+      "description": "Squad this meteor belongs to (one row per squad)"
+    },
+    "level": {
+      "type": "number",
+      "default": 1,
+      "description": "Current meteor level. Levels carry over forever \u2014 no weekly reset."
+    },
+    "max_hp": {
+      "type": "number",
+      "description": "HP of the current meteor level. Formula: 50M + (level-1)*25M."
+    },
+    "current_hp": {
+      "type": "number",
+      "description": "Remaining HP of the current meteor. When this hits 0, level increments and a fresh meteor spawns."
+    },
+    "total_lifetime_damage": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative damage all squad members have dealt across all meteor levels (for bragging rights)"
+    },
+    "total_lifetime_kills": {
+      "type": "number",
+      "default": 0,
+      "description": "How many meteors this squad has destroyed lifetime"
+    }
+  },
+  "required": [
+    "squad_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

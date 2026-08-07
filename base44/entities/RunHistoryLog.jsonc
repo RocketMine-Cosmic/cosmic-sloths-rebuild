@@ -1,0 +1,50 @@
+{
+  "name": "RunHistoryLog",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet of the player who completed the run."
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Character used for this run (mirrors RunScore.character_id)."
+    },
+    "arena_id": {
+      "type": "string",
+      "description": "Arena played (mirrors RunScore.arena_id). Sector or 'endless' \u2014 raid/meteor are excluded by saveScore."
+    },
+    "date_key": {
+      "type": "string",
+      "description": "UTC day of the run, YYYY-MM-DD. Lets the admin metrics dashboard cheaply window 'top characters/arenas' to a date range without scanning created_date strings."
+    }
+  },
+  "required": [
+    "wallet_address",
+    "character_id",
+    "arena_id",
+    "date_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

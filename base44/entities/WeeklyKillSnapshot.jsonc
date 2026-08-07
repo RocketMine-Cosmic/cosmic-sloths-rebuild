@@ -1,0 +1,59 @@
+{
+  "name": "WeeklyKillSnapshot",
+  "type": "object",
+  "properties": {
+    "week_id": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W25) that this snapshot freezes. Written at week rollover so the kill-pool payout has a stable record of who scored what, even after PlayerSave.weekly_sector_kills rolls over to the new week."
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet of the contributor."
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Cached pilot name at snapshot time (so payout TX history shows the name they had when they earned it, even if they later rename)."
+    },
+    "kills": {
+      "type": "number",
+      "default": 0,
+      "description": "Final weekly_sector_kills value for that wallet in that week. Sector runs only \u2014 endless/raid/meteor excluded (same rules as PlayerSave.weekly_sector_kills)."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "saveScore_rollover",
+        "scheduled_freeze",
+        "admin_backfill"
+      ],
+      "description": "Where this snapshot came from. saveScore_rollover = lazy write when a player started a run in a new week. scheduled_freeze = end-of-week cron sweep. admin_backfill = one-time recovery for W25 after the rollover bug was found."
+    }
+  },
+  "required": [
+    "week_id",
+    "wallet_address",
+    "kills"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

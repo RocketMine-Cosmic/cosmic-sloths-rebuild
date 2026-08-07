@@ -1,0 +1,57 @@
+{
+  "name": "SquadMeteorAttack",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet of the attacker"
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Cached pilot name at time of attack"
+    },
+    "damage": {
+      "type": "number",
+      "description": "Damage dealt in this single attack run"
+    },
+    "meteor_level_at_attack": {
+      "type": "number",
+      "description": "What meteor level was active when this attack landed (snapshot for history)"
+    },
+    "attack_date_utc": {
+      "type": "string",
+      "description": "YYYY-MM-DD UTC date of the attack \u2014 used for daily attempt counting"
+    },
+    "week_id": {
+      "type": "string",
+      "description": "ISO week id (for weekly leaderboard)"
+    }
+  },
+  "required": [
+    "squad_id",
+    "wallet_address",
+    "damage",
+    "attack_date_utc"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

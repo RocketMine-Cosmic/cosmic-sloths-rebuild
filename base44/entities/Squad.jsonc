@@ -1,0 +1,150 @@
+{
+  "name": "Squad",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "unique": true
+    },
+    "tag": {
+      "type": "string",
+      "unique": true
+    },
+    "description": {
+      "type": "string"
+    },
+    "owner_wallet": {
+      "type": "string",
+      "description": "Wallet address of the squad owner"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Squad emoji icon"
+    },
+    "privacy": {
+      "type": "string",
+      "enum": [
+        "open",
+        "request",
+        "closed"
+      ],
+      "default": "open",
+      "description": "open = anyone can join instantly. request = leader/officers approve. closed = no new joins."
+    },
+    "weekly_kills": {
+      "type": "number",
+      "default": 0
+    },
+    "current_week": {
+      "type": "string"
+    },
+    "daily_kills": {
+      "type": "number",
+      "default": 0
+    },
+    "current_day": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1
+    },
+    "xp": {
+      "type": "number",
+      "default": 0
+    },
+    "level": {
+      "type": "number",
+      "default": 1
+    },
+    "war_wins": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime Squad War wins"
+    },
+    "war_losses": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime Squad War losses"
+    },
+    "war_ties": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime Squad War ties"
+    },
+    "war_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Current consecutive win streak (resets on loss/tie)"
+    },
+    "last_daily_xp_award_date": {
+      "type": "string",
+      "description": "Date (YYYY-MM-DD UTC) of the last daily-bounty XP bonus payout."
+    },
+    "treasury_gold": {
+      "type": "number",
+      "default": 0,
+      "description": "S6 Squad Treasury \u2014 gold pool donated by members. Spent to activate weekly squad-wide buffs."
+    },
+    "treasury_total_donated": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime gold donated to this treasury (display only \u2014 not consumed by buffs)."
+    },
+    "active_buff_tier": {
+      "type": "string",
+      "enum": [
+        "",
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "",
+      "description": "Buff currently in effect THIS ISO week. Auto-cleared (or rolled forward from pending_*) on week rollover via resetPeriods."
+    },
+    "active_buff_week_id": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W22) the active buff applies to. Buff is ignored once we're past this week."
+    },
+    "pending_buff_tier": {
+      "type": "string",
+      "enum": [
+        "",
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "",
+      "description": "Buff pre-purchased for a FUTURE week. Rolls into active_buff_tier when that week becomes the current week."
+    },
+    "pending_buff_week_id": {
+      "type": "string",
+      "description": "ISO week id the pending buff applies to. Always a future week relative to current."
+    }
+  },
+  "required": [
+    "name",
+    "tag",
+    "owner_wallet"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

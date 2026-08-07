@@ -1,0 +1,109 @@
+{
+  "name": "CosmeticAsset",
+  "type": "object",
+  "properties": {
+    "cosmetic_id": {
+      "type": "string",
+      "description": "The cosmetic this asset is intended for (e.g. 'animated_pilot_orbiting_moon', 'lb_frame_gold_filigree', 'trail_basic_v2_pastel'). Free-form so the same studio works for chest cosmetics, standard expansion variants, and one-off reworks."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "animated_pilot_icon",
+        "lb_frame",
+        "meteor_fx",
+        "skin",
+        "trail",
+        "kill_fx",
+        "title_flair",
+        "other"
+      ],
+      "description": "High-level category \u2014 drives the gallery filter and tells us which render path the URL will feed into."
+    },
+    "rarity": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "epic",
+        "mythic"
+      ],
+      "description": "Visual tier the asset belongs to. Standard = legacy Armoury rework / GMT-tier. Epic / Mythic = chest cosmetic lines."
+    },
+    "url": {
+      "type": "string",
+      "description": "Static URL of the uploaded PNG returned by UploadFile."
+    },
+    "model_id": {
+      "type": "string",
+      "description": "Hugging Face model that produced this image (for audit + reroll-with-same-model)."
+    },
+    "prompt": {
+      "type": "string",
+      "description": "Full text prompt used. Stored so we can re-run a reroll with the same prompt or tweak it."
+    },
+    "negative_prompt": {
+      "type": "string",
+      "description": "Optional negative prompt used during generation."
+    },
+    "width": {
+      "type": "number",
+      "description": "Image width requested from HF."
+    },
+    "height": {
+      "type": "number",
+      "description": "Image height requested from HF."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "approved",
+        "rejected",
+        "needs_reroll"
+      ],
+      "default": "pending_review",
+      "description": "Admin review state. Only 'approved' assets will be wired into the Wardrobe."
+    },
+    "attempt": {
+      "type": "number",
+      "default": 1,
+      "description": "Which generation attempt this is for the same cosmetic_id (increments when an admin rerolls)."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional admin notes \u2014 why it was rejected, prompt tweaks for next reroll, etc."
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "Wallet / email of the admin who triggered the generation."
+    }
+  },
+  "required": [
+    "cosmetic_id",
+    "url",
+    "model_id",
+    "prompt"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

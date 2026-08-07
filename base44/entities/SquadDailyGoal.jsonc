@@ -1,0 +1,68 @@
+{
+  "name": "SquadDailyGoal",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string",
+      "description": "Squad this goal belongs to"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "kills",
+        "custom"
+      ],
+      "default": "kills",
+      "description": "kills = numeric kill target tracked against squad.daily_kills; custom = leader-defined challenge"
+    },
+    "target": {
+      "type": "number",
+      "description": "Numeric target (only used when goal_type=kills)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Short human-readable label shown on the banner (e.g. 'Hit 1,500 kills today')"
+    },
+    "set_by_wallet": {
+      "type": "string",
+      "description": "Wallet of the leader who set this goal"
+    },
+    "set_by_name": {
+      "type": "string",
+      "description": "Pilot name of the leader at the time the goal was set"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this goal stops being active. Server clears expired goals on read."
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Set to false when leader manually clears the goal"
+    }
+  },
+  "required": [
+    "squad_id",
+    "label",
+    "set_by_wallet"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

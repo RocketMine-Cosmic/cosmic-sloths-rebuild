@@ -1,0 +1,55 @@
+{
+  "name": "AdminWallet",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "OmenX wallet address with admin privileges"
+    },
+    "admin_name": {
+      "type": "string",
+      "description": "Display name for the admin"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Admin permission scopes (e.g. 'view_data', 'distribute_rewards', 'manage_admins')"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes about this admin"
+    },
+    "payout_pct_override": {
+      "type": "number",
+      "description": "Optional per-wallet weekly payout %. If set (>= 0), overrides the global staff_pct_per_wallet for this admin only. Leave unset/null to use the global default."
+    }
+  },
+  "required": [
+    "wallet_address"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

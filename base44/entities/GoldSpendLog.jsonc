@@ -1,0 +1,64 @@
+{
+  "name": "GoldSpendLog",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Player's wallet address"
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Player display name at time of purchase"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Gold cost deducted"
+    },
+    "balance_before": {
+      "type": "number",
+      "description": "Player's gold balance before the deduction"
+    },
+    "balance_after": {
+      "type": "number",
+      "description": "Player's gold balance after the deduction"
+    },
+    "grant_info": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Snapshot of the grant payload (type, tier, stat/weapon/talent/cosmetic ids, level)"
+    },
+    "week_id": {
+      "type": "string"
+    },
+    "season_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "wallet_address",
+    "amount",
+    "grant_info"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

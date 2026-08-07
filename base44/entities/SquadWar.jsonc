@@ -1,0 +1,103 @@
+{
+  "name": "SquadWar",
+  "type": "object",
+  "properties": {
+    "week_id": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W18) \u2014 pairing is for this week"
+    },
+    "squad_a_id": {
+      "type": "string",
+      "description": "First paired squad id"
+    },
+    "squad_a_name": {
+      "type": "string"
+    },
+    "squad_a_tag": {
+      "type": "string"
+    },
+    "squad_a_icon": {
+      "type": "string"
+    },
+    "squad_a_level": {
+      "type": "number",
+      "default": 1
+    },
+    "squad_b_id": {
+      "type": "string",
+      "description": "Second paired squad id"
+    },
+    "squad_b_name": {
+      "type": "string"
+    },
+    "squad_b_tag": {
+      "type": "string"
+    },
+    "squad_b_icon": {
+      "type": "string"
+    },
+    "squad_b_level": {
+      "type": "number",
+      "default": 1
+    },
+    "kills_a": {
+      "type": "number",
+      "default": 0,
+      "description": "Kills accumulated by squad A during this war"
+    },
+    "kills_b": {
+      "type": "number",
+      "default": 0,
+      "description": "Kills accumulated by squad B during this war"
+    },
+    "is_resolved": {
+      "type": "boolean",
+      "default": false,
+      "description": "True after the war ended and rewards distributed"
+    },
+    "winner_squad_id": {
+      "type": "string",
+      "description": "Set when resolved \u2014 winner squad id, or empty for tie"
+    },
+    "result_kind": {
+      "type": "string",
+      "enum": [
+        "win_a",
+        "win_b",
+        "tie",
+        "bye"
+      ],
+      "description": "win_a/win_b = decisive, tie = same kills, bye = squad had no opponent"
+    },
+    "rewarded_member_wallets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Wallets that already collected the win bonus (idempotent claim)"
+    }
+  },
+  "required": [
+    "week_id",
+    "squad_a_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

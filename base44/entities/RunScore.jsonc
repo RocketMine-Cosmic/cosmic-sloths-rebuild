@@ -1,0 +1,133 @@
+{
+  "name": "RunScore",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "OmenX wallet address \u2014 canonical identity for rewards",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Name of the player"
+    },
+    "player_title": {
+      "type": "string",
+      "description": "Player's chosen title"
+    },
+    "pilot_icon": {
+      "type": "string",
+      "description": "Emoji icon chosen by the player"
+    },
+    "score": {
+      "type": "number",
+      "description": "Calculated score for the run"
+    },
+    "time_survived": {
+      "type": "number",
+      "description": "Time survived in seconds"
+    },
+    "level": {
+      "type": "number",
+      "description": "Level reached"
+    },
+    "kills": {
+      "type": "number",
+      "description": "Enemies defeated"
+    },
+    "gold_earned": {
+      "type": "number",
+      "description": "Raw gold the client reported for this run (pre-cap)"
+    },
+    "gold_credited": {
+      "type": "number",
+      "description": "Gold actually credited to PlayerSave after server caps"
+    },
+    "character_id": {
+      "type": "string",
+      "description": "Character used"
+    },
+    "arena_id": {
+      "type": "string",
+      "description": "Arena played"
+    },
+    "run_type": {
+      "type": "string",
+      "enum": [
+        "sector",
+        "endless"
+      ],
+      "description": "Run category \u2014 used to filter reads cheaply without scanning arena_id. 'sector' = any non-endless run that lands in RunScore (sectors + Leviathan Trial modifiers), 'endless' = endless arena. Written at saveScore time; older RunScore rows may be missing this field until backfilled."
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "normal",
+        "hard",
+        "cosmic"
+      ],
+      "description": "Difficulty the run was played on. Written at saveScore time so admin tools (RunScore Lookup) can display it. Older rows lack this field until backfilled."
+    },
+    "week_id": {
+      "type": "string",
+      "description": "Identifier for the week (e.g., 2026-W13)"
+    },
+    "season_id": {
+      "type": "string",
+      "description": "Identifier for the season (e.g., 2026-S1)"
+    },
+    "equipped_animated_icon": {
+      "type": "string",
+      "description": "Player's equipped chest animated pilot icon at run-end (e.g. 'animated_pilot_orbiting_moon'). Mirrored from save.profile by saveScore so the leaderboard row renders the chest icon for other players. Empty when player isn't using a chest icon."
+    },
+    "equipped_lb_frame": {
+      "type": "string",
+      "description": "Player's equipped chest LB frame at run-end (e.g. 'lb_frame_gold_filigree'). Mirrored from save.profile so the LB row wraps the row in the frame for other players. Empty when not using one."
+    },
+    "equipped_title_style": {
+      "type": "string",
+      "description": "Player's equipped chest Title Flair at run-end (e.g. 'title_style_blue_flame'). Mirrored from save.profile so the player_title pill renders with the flair animation for other players. Empty when not using one."
+    }
+  },
+  "required": [
+    "user_id",
+    "player_name",
+    "score",
+    "week_id",
+    "season_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

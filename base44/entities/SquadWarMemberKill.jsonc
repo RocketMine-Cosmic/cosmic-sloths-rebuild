@@ -1,0 +1,54 @@
+{
+  "name": "SquadWarMemberKill",
+  "type": "object",
+  "properties": {
+    "war_id": {
+      "type": "string",
+      "description": "SquadWar row this contribution belongs to. Per-member counter is scoped to a single war so finished wars keep their historical breakdown intact."
+    },
+    "squad_id": {
+      "type": "string",
+      "description": "Squad the member was fighting for at the time of the kill (denormalised for fast lookups without joining SquadMember)."
+    },
+    "week_id": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W22) of the war \u2014 duplicated here for cheap weekly queries / archives without joining SquadWar."
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase contributor wallet"
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Cached pilot name at last update (for display in war archives where the player may have since renamed or left the squad)."
+    },
+    "kills": {
+      "type": "number",
+      "default": 0,
+      "description": "Total war-eligible kills credited by saveScore. Server-authoritative \u2014 incremented in-place alongside SquadWar.kills_a/kills_b so finished wars keep an accurate per-member breakdown even after RunScore cleanup."
+    }
+  },
+  "required": [
+    "war_id",
+    "squad_id",
+    "wallet_address"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

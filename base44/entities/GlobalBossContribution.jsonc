@@ -1,0 +1,67 @@
+{
+  "name": "GlobalBossContribution",
+  "type": "object",
+  "properties": {
+    "week_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "player_name": {
+      "type": "string"
+    },
+    "damage": {
+      "type": "number"
+    },
+    "claimed": {
+      "type": "boolean",
+      "default": false
+    },
+    "claimed_milestones": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": []
+    },
+    "squad_id": {
+      "type": "string",
+      "description": "Squad id of the contributor at time of submission (for squad raid leaderboard)"
+    },
+    "squad_name": {
+      "type": "string",
+      "description": "Cached squad name for display"
+    },
+    "squad_tag": {
+      "type": "string",
+      "description": "Cached squad tag for display"
+    },
+    "squad_icon": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "week_id",
+    "user_id",
+    "damage"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

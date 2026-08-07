@@ -1,0 +1,58 @@
+{
+  "name": "GlobalBoss",
+  "type": "object",
+  "properties": {
+    "week_id": {
+      "type": "string"
+    },
+    "boss_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "max_hp": {
+      "type": "number"
+    },
+    "current_hp": {
+      "type": "number"
+    },
+    "reward_type": {
+      "type": "string"
+    },
+    "reward_id": {
+      "type": "string"
+    },
+    "is_defeated": {
+      "type": "boolean",
+      "default": false
+    },
+    "level": {
+      "type": "number",
+      "default": 1
+    }
+  },
+  "required": [
+    "week_id",
+    "max_hp",
+    "current_hp"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

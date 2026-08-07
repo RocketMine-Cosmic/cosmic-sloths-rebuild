@@ -1,0 +1,57 @@
+{
+  "name": "AdminChangesLog",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Admin wallet address"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "sku_update",
+        "reward_adjustment",
+        "pool_reset",
+        "player_action",
+        "other"
+      ],
+      "description": "Type of administrative action"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the action"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional details about the action"
+    }
+  },
+  "required": [
+    "wallet_address",
+    "action_type",
+    "description"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

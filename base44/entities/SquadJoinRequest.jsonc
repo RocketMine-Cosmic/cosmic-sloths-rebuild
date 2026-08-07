@@ -1,0 +1,53 @@
+{
+  "name": "SquadJoinRequest",
+  "type": "object",
+  "properties": {
+    "squad_id": {
+      "type": "string",
+      "description": "Target squad"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "Requester wallet (lowercase)"
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Snapshot of requester's pilot name"
+    },
+    "player_title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "squad_id",
+    "wallet_address",
+    "player_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

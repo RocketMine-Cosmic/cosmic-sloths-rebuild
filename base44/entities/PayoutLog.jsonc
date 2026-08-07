@@ -1,0 +1,51 @@
+{
+  "name": "PayoutLog",
+  "type": "object",
+  "properties": {
+    "period_id": {
+      "type": "string"
+    },
+    "period_type": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string"
+    },
+    "player_name": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "rank": {
+      "type": "number"
+    },
+    "tx_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period_id",
+    "period_type",
+    "wallet_address",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

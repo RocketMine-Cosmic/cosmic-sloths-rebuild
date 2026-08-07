@@ -1,0 +1,89 @@
+{
+  "name": "PlayerSave",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "unique": true
+    },
+    "player_name": {
+      "type": "string",
+      "description": "Player's display name (mirrored from save_data for easy admin search)"
+    },
+    "player_title": {
+      "type": "string",
+      "description": "Player's equipped title (mirrored from save_data.profile so the Profile Fan-Out automation can trigger on changes without scanning save_data)."
+    },
+    "pilot_icon": {
+      "type": "string",
+      "description": "Player's pilot icon emoji (mirrored from save_data.profile so the Profile Fan-Out automation can trigger on changes without scanning save_data)."
+    },
+    "save_data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "updated_at": {
+      "type": "number"
+    },
+    "weekly_sector_kills": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative kills from sector runs in the current ISO week. Top-level (not nested in save_data) so the weekly kill leaderboard can sort on it server-side. Server-authoritative: only saveScore writes this, only counts sector runs (excludes endless, raid, meteor). Resets to 0 when weekly_sector_kills_week != current week (lazy reset on next save)."
+    },
+    "weekly_sector_kills_week": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W22) that weekly_sector_kills applies to. Once we're past this week, the counter is effectively expired and the leaderboard query (which filters on current week_id) naturally excludes it."
+    },
+    "weekly_revive_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S8 revive escalation counter \u2014 number of paid revives this ISO week (top-level so purchaseSku can atomically increment without a full save_data rewrite). Server-authoritative: only purchaseSku writes this. Capped at 15 per week (see PLAN_REVIVE_AND_FRAGMENTS.md \u00a7Sink 1). Resets to 0 lazily when weekly_revive_week_id != current week."
+    },
+    "weekly_revive_week_id": {
+      "type": "string",
+      "description": "ISO week id that weekly_revive_count applies to. Once we're past this week, the counter is expired and the next revive purchase resets it to 0."
+    },
+    "weekly_fragment_batches": {
+      "type": "number",
+      "default": 0,
+      "description": "S8 fragment express lane counter \u2014 number of 15-fragment batches purchased this ISO week (top-level for the same atomic-increment reason as weekly_revive_count). Server-authoritative: only purchaseSku writes this. Capped at 40 batches per week (= 600 frags / 400 OMENX, see PLAN_REVIVE_AND_FRAGMENTS.md \u00a7Sink 2). Resets to 0 lazily when weekly_fragment_batches_week_id != current week."
+    },
+    "weekly_fragment_batches_week_id": {
+      "type": "string",
+      "description": "ISO week id that weekly_fragment_batches applies to. Once we're past this week, the counter is expired and the next fragment purchase resets it to 0."
+    }
+  },
+  "required": [
+    "wallet_address",
+    "save_data"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.wallet_address": "{{user.data.wallet_address}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

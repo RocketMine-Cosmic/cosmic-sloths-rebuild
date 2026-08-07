@@ -1,0 +1,44 @@
+{
+  "name": "OmenAuthEvent",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet that completed a full OmenX OAuth code exchange."
+    },
+    "at_ms": {
+      "type": "number",
+      "description": "Unix ms timestamp of the successful token exchange (server clock). Proof that a real PKCE flow completed \u2014 which is exactly what Omen requires to record a session. Lets us tell 'player never re-logged in' apart from 'player DID re-log in and Omen still 404s them'."
+    },
+    "week_id": {
+      "type": "string",
+      "description": "ISO week id (e.g. 2026-W31) of the exchange, so we can check whether a fresh login happened in the current weekly re-auth window."
+    }
+  },
+  "required": [
+    "wallet_address",
+    "at_ms"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

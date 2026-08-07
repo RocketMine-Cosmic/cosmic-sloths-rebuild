@@ -1,0 +1,64 @@
+{
+  "name": "SyncBlockLog",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Wallet of the player whose sync was blocked"
+    },
+    "field": {
+      "type": "string",
+      "description": "Field name that was blocked (e.g. 'gold', 'totalKills')"
+    },
+    "client_value": {
+      "type": "number",
+      "description": "Value the client tried to push"
+    },
+    "cloud_value": {
+      "type": "number",
+      "description": "Value currently on cloud (kept)"
+    },
+    "client_ts": {
+      "type": "number",
+      "description": "Client updated_at timestamp"
+    },
+    "cloud_ts": {
+      "type": "number",
+      "description": "Cloud updated_at timestamp at time of block"
+    },
+    "client_was_stale": {
+      "type": "boolean",
+      "description": "Whether the client's timestamp was older than cloud's"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional context (e.g. 'array_injection', 'period_mismatch')"
+    }
+  },
+  "required": [
+    "wallet_address",
+    "field"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "BlacklistedWallet",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "unique": true,
+      "description": "OmenX wallet address to ban"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for ban (abuse, exploit, fraud, etc)"
+    },
+    "banned_by": {
+      "type": "string",
+      "description": "Admin wallet address who issued the ban"
+    },
+    "banned_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the ban was issued"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional admin notes"
+    }
+  },
+  "required": [
+    "wallet_address",
+    "reason",
+    "banned_by"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

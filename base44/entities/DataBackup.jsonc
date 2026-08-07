@@ -1,0 +1,66 @@
+{
+  "name": "DataBackup",
+  "type": "object",
+  "properties": {
+    "backup_name": {
+      "type": "string",
+      "description": "Human-readable backup identifier"
+    },
+    "backup_type": {
+      "type": "string",
+      "enum": [
+        "automated",
+        "manual"
+      ],
+      "description": "Whether backup was scheduled or manual"
+    },
+    "snapshot_data": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Archived entity data (PlayerSave, RunScore, Squad, etc.)"
+    },
+    "entity_counts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      },
+      "description": "Count of each entity type backed up"
+    },
+    "restore_available": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this backup can be restored"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes about the backup"
+    }
+  },
+  "required": [
+    "backup_name",
+    "backup_type",
+    "snapshot_data"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "DailyActivityLog",
+  "type": "object",
+  "properties": {
+    "wallet_address": {
+      "type": "string",
+      "description": "Lowercase wallet of the active player."
+    },
+    "date_key": {
+      "type": "string",
+      "description": "UTC day this activity belongs to, in YYYY-MM-DD format. Combined with wallet_address forms the logical unique key \u2014 saveScore performs an upsert so each (wallet, day) pair appears exactly once."
+    },
+    "first_seen_ms": {
+      "type": "number",
+      "description": "Unix ms timestamp of the player's first save on this day (UTC). Used by the hourly heartbeat chart so the 24h breakdown is stable even after the player saves again later in the day."
+    }
+  },
+  "required": [
+    "wallet_address",
+    "date_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

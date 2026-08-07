@@ -1,0 +1,438 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+
+
+@layer utilities {
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  /* ============================================================
+   * CHEST EPIC — Title Flair cosmetics
+   * Applied by adding the .title-flair-<id> class to the title
+   * text element when save.profile.equipped_title_style is set.
+   * Each flair is a single-class effect so titles can be rendered
+   * anywhere (LB rows, profile, chat) with just className tagging.
+   * ============================================================ */
+
+  /* Rainbow Shimmer — hue-shift gradient that travels across the text */
+  @keyframes title-flair-rainbow-shift {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .title-flair-rainbow_shimmer {
+    background-image: linear-gradient(90deg, #ff4d6d, #ffa64d, #ffe14d, #6dffa6, #4da6ff, #b84dff, #ff4d6d);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: title-flair-rainbow-shift 4s linear infinite;
+    font-weight: 700;
+  }
+
+  /* Blue Flame — flickering blue outline glow */
+  @keyframes title-flair-blue-flicker {
+    0%, 100% { text-shadow: 0 0 4px #4dc8ff, 0 0 8px #1e90ff, 0 0 14px #0066ff; }
+    50%      { text-shadow: 0 0 6px #80dcff, 0 0 14px #1e90ff, 0 0 22px #0066ff, 0 0 30px #003fcc; }
+  }
+  .title-flair-blue_flame {
+    color: #e6f4ff;
+    animation: title-flair-blue-flicker 1.4s ease-in-out infinite;
+    font-weight: 700;
+  }
+
+  /* ============================================================
+   * CHEST EPIC — LB Banner Frame animations
+   * Per-frame glow / shimmer applied via the .lb-frame-* class on the
+   * outer wrapper. Uses drop-shadow filter (cheap, GPU-composited) so
+   * the painted PNG itself gets a coloured halo — way more striking
+   * than a static border.
+   * ============================================================ */
+  /* Glow uses box-shadow (outside the box only) instead of drop-shadow filter,
+   * which would tint every child element including the LB row content. */
+  @keyframes lb-frame-glow-gold-kf {
+    0%, 100% { box-shadow: 0 0 8px 2px rgba(255, 200, 80, 0.35); }
+    50%      { box-shadow: 0 0 22px 4px rgba(255, 200, 80, 0.7); }
+  }
+  .lb-frame-glow-gold { animation: lb-frame-glow-gold-kf 3.2s ease-in-out infinite; }
+
+  @keyframes lb-frame-arc-flicker-kf {
+    0%, 100% { box-shadow: 0 0 10px 2px rgba(80, 200, 255, 0.45); }
+    50%      { box-shadow: 0 0 22px 4px rgba(120, 220, 255, 0.8); }
+  }
+  .lb-frame-arc-flicker { animation: lb-frame-arc-flicker-kf 3.4s ease-in-out infinite; }
+
+  @keyframes lb-frame-nebula-drift-kf {
+    0%, 100% { box-shadow: 0 0 12px 2px rgba(180, 80, 220, 0.35); }
+    50%      { box-shadow: 0 0 22px 4px rgba(120, 100, 255, 0.55); }
+  }
+  .lb-frame-nebula-drift { animation: lb-frame-nebula-drift-kf 6s ease-in-out infinite; }
+
+  @keyframes lb-frame-glitch-pulse-kf {
+    0%, 100% { box-shadow: 2px 0 0 rgba(255, 50, 80, 0.5), -2px 0 0 rgba(50, 220, 255, 0.5); }
+    50%      { box-shadow: -2px 0 0 rgba(255, 50, 80, 0.7), 2px 0 0 rgba(50, 220, 255, 0.7); }
+  }
+  .lb-frame-glitch-pulse { animation: lb-frame-glitch-pulse-kf 3s ease-in-out infinite; }
+
+  @keyframes lb-frame-eclipse-glow-kf {
+    0%, 100% { box-shadow: 0 0 12px 2px rgba(255, 180, 60, 0.5), 0 0 28px 6px rgba(220, 60, 60, 0.25); }
+    50%      { box-shadow: 0 0 28px 4px rgba(255, 210, 90, 0.85), 0 0 48px 10px rgba(220, 60, 60, 0.5); }
+  }
+  .lb-frame-eclipse-glow { animation: lb-frame-eclipse-glow-kf 3.6s ease-in-out infinite; }
+
+  /* ============================================================
+   * CHEST MYTHIC — Meteor Strike FX (gold lightning) shimmer
+   * Pulses a gold halo and shifts brightness so the static PNG
+   * reads as "live" in the squad activity feed and preview.
+   * ============================================================ */
+  @keyframes meteor-fx-gold-pulse-kf {
+    0%, 100% {
+      filter: drop-shadow(0 0 4px rgba(255, 200, 80, 0.55)) brightness(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 14px rgba(255, 220, 120, 1)) brightness(1.35);
+    }
+  }
+  .meteor-fx-gold-lightning { animation: meteor-fx-gold-pulse-kf 1.6s ease-in-out infinite; }
+
+  /* ============================================================
+   * STANDARD ("Support the Devs") — Title Flair cosmetics
+   * Lighter-weight than the chest tier: solid colours and soft
+   * effects, no gradient animation.
+   * ============================================================ */
+  /* Cyan Glow — layered halo, bright core */
+  .title-flair-cyan_glow {
+    color: #ecfeff;
+    text-shadow:
+      0 0 4px rgba(165,243,252,0.95),
+      0 0 10px rgba(34,211,238,0.85),
+      0 0 22px rgba(34,211,238,0.55),
+      0 0 38px rgba(8,145,178,0.35);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  /* Gold Outline — gradient fill + dark outline + warm sheen */
+  .title-flair-gold_outline {
+    background-image: linear-gradient(180deg, #fef3c7 0%, #fde68a 35%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    -webkit-text-stroke: 1px #92400e;
+    filter: drop-shadow(0 1px 0 rgba(120,53,15,0.6)) drop-shadow(0 0 6px rgba(217,119,6,0.55));
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  /* Pink Pop — vivid magenta with radiant glow */
+  .title-flair-pink_pop {
+    color: #fdf2f8;
+    text-shadow:
+      0 0 4px rgba(251,207,232,0.95),
+      0 0 12px rgba(244,114,182,0.9),
+      0 0 24px rgba(236,72,153,0.6),
+      0 0 40px rgba(190,24,93,0.35);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  /* Emerald Mint — gradient sheen + soft glow */
+  .title-flair-emerald_mint {
+    background-image: linear-gradient(180deg, #d1fae5 0%, #6ee7b7 50%, #10b981 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter:
+      drop-shadow(0 0 4px rgba(110,231,183,0.7))
+      drop-shadow(0 0 10px rgba(16,185,129,0.45));
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+  /* Violet Haze — deeper gradient + dual-layer haze */
+  .title-flair-violet_haze {
+    background-image: linear-gradient(180deg, #ede9fe 0%, #c4b5fd 40%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter:
+      drop-shadow(0 0 5px rgba(167,139,250,0.75))
+      drop-shadow(0 0 12px rgba(124,58,237,0.45));
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  /* ============================================================
+   * STANDARD — LB Frame pulse / gradient-shift animations.
+   * Frames are pure CSS borders on the LBFrame wrapper; these
+   * keyframes drive the subtle "alive" effect on each.
+   * ============================================================ */
+  @keyframes std-lb-pulse-cyan-kf {
+    0%, 100% { box-shadow: 0 0 8px 1px rgba(34,211,238,0.4); }
+    50%      { box-shadow: 0 0 16px 3px rgba(34,211,238,0.75); }
+  }
+  .std-lb-pulse-cyan { animation: std-lb-pulse-cyan-kf 2.6s ease-in-out infinite; }
+
+  @keyframes std-lb-pulse-gold-kf {
+    0%, 100% { box-shadow: 0 0 8px 1px rgba(250,204,21,0.45); }
+    50%      { box-shadow: 0 0 16px 3px rgba(250,204,21,0.8); }
+  }
+  .std-lb-pulse-gold { animation: std-lb-pulse-gold-kf 2.6s ease-in-out infinite; }
+
+  @keyframes std-lb-pulse-purple-kf {
+    0%, 100% { box-shadow: 0 0 8px 1px rgba(168,85,247,0.45); }
+    50%      { box-shadow: 0 0 18px 3px rgba(192,132,252,0.8); }
+  }
+  .std-lb-pulse-purple { animation: std-lb-pulse-purple-kf 2.8s ease-in-out infinite; }
+
+  /* Gradient frames use background-position shift on the border image */
+  @keyframes std-lb-grad-shift-kf {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  .std-lb-grad-shift { animation: std-lb-grad-shift-kf 5s linear infinite; }
+
+  /* ============================================================
+   * STANDARD — Animated Pilot Icon motions.
+   * Applied to a wrapper around the emoji so the avatar slot
+   * itself doesn't move.
+   * ============================================================ */
+  @keyframes std-icon-spin-kf  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .std-icon-spin { animation: std-icon-spin-kf 4s linear infinite; display: inline-block; }
+
+  @keyframes std-icon-pulse-kf {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
+    50%      { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(125,211,252,0.8)); }
+  }
+  .std-icon-pulse { animation: std-icon-pulse-kf 1.6s ease-in-out infinite; display: inline-block; }
+
+  @keyframes std-icon-bounce-kf {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-15%); }
+  }
+  .std-icon-bounce { animation: std-icon-bounce-kf 1.4s ease-in-out infinite; display: inline-block; }
+
+  @keyframes std-icon-glow-kf {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(244,114,182,0.5)); }
+    50%      { filter: drop-shadow(0 0 10px rgba(244,114,182,1)); }
+  }
+  .std-icon-glow { animation: std-icon-glow-kf 1.8s ease-in-out infinite; display: inline-block; }
+
+  @keyframes std-icon-wobble-kf {
+    0%, 100% { transform: rotate(-8deg); }
+    50%      { transform: rotate(8deg); }
+  }
+  .std-icon-wobble { animation: std-icon-wobble-kf 1.6s ease-in-out infinite; display: inline-block; }
+
+  /* ============================================================
+   * CHEST EPIC — Animated Pilot Icon motions.
+   *
+   * Design rule: the PNG itself NEVER moves (no transform, no scale).
+   * The static art is the cosmetic; the animation is an ambient glow /
+   * halo / overlay around it so it reads as "alive" without warping
+   * the picture. Black Hole is the one exception — circle-masked so a
+   * disc spin can sit on top without showing square corners.
+   * ============================================================ */
+
+  /* Shared wrapper — establishes positioning + clips overlays to the avatar.
+     The chest icon container already has rounded-full + overflow-hidden, so
+     this just gives us a positioning context for absolutely-placed glows. */
+  .chest-icon-wrap { position: relative; width: 100%; height: 100%; }
+  .chest-icon-wrap > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  /* Halo overlay sits inside the rounded container and never escapes its bounds */
+  .chest-icon-halo {
+    position: absolute; inset: 0; pointer-events: none; border-radius: 9999px;
+  }
+
+  /* Orbiting Moon — gentle cool halo pulse, no movement */
+  @keyframes chest-icon-moon-halo-kf {
+    0%, 100% { box-shadow: inset 0 0 12px 1px rgba(180,210,255,0.18), 0 0 8px  rgba(180,210,255,0.35); opacity: 0.85; }
+    50%      { box-shadow: inset 0 0 18px 2px rgba(200,225,255,0.32), 0 0 18px rgba(180,210,255,0.7);  opacity: 1; }
+  }
+  .chest-icon-orbit-drift .chest-icon-halo { animation: chest-icon-moon-halo-kf 5s ease-in-out infinite; }
+
+  /* Glitch Skull — true RGB-split via two tinted img copies, no movement.
+     Implemented in the component by stacking 3 images; this class flickers
+     the offset copies in/out so it reads as a broken-signal glitch. */
+  @keyframes chest-icon-glitch-r-kf {
+    0%, 90%, 100% { opacity: 0; transform: translate(0,0); }
+    91%, 94%      { opacity: 0.7; transform: translate(2px, 0); }
+    95%, 97%      { opacity: 0.5; transform: translate(-1px, 1px); }
+  }
+  @keyframes chest-icon-glitch-b-kf {
+    0%, 90%, 100% { opacity: 0; transform: translate(0,0); }
+    91%, 94%      { opacity: 0.7; transform: translate(-2px, 0); }
+    95%, 97%      { opacity: 0.5; transform: translate(1px, -1px); }
+  }
+  @keyframes chest-icon-glitch-halo-kf {
+    0%, 89%, 100% { box-shadow: inset 0 0 10px rgba(34,211,238,0.25), 0 0 6px rgba(34,211,238,0.35); }
+    92%, 96%      { box-shadow: inset 0 0 16px rgba(34,211,238,0.55), 0 0 16px rgba(34,211,238,0.85); }
+  }
+  .chest-icon-glitch .chest-icon-halo { animation: chest-icon-glitch-halo-kf 3.5s steps(1, end) infinite; }
+  .chest-icon-glitch .chest-icon-rgb-r {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    mix-blend-mode: screen; filter: hue-rotate(-60deg) saturate(2);
+    animation: chest-icon-glitch-r-kf 3.5s steps(1, end) infinite;
+  }
+  .chest-icon-glitch .chest-icon-rgb-b {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    mix-blend-mode: screen; filter: hue-rotate(180deg) saturate(2);
+    animation: chest-icon-glitch-b-kf 3.5s steps(1, end) infinite;
+  }
+
+  /* Black Hole — the ONE icon we transform. The PNG is circle-masked so
+     rotating the full square stays inside the avatar bounds, and the
+     accretion disc spins naturally with the warm halo pulse. */
+  @keyframes chest-icon-blackhole-spin-kf {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes chest-icon-blackhole-halo-kf {
+    0%, 100% { box-shadow: inset 0 0 14px rgba(255,140,40,0.35), 0 0 10px rgba(255,140,40,0.45); }
+    50%      { box-shadow: inset 0 0 22px rgba(255,170,60,0.6),  0 0 22px rgba(255,170,60,0.85); }
+  }
+  .chest-icon-accretion-spin > img { animation: chest-icon-blackhole-spin-kf 18s linear infinite; }
+  .chest-icon-accretion-spin .chest-icon-halo { animation: chest-icon-blackhole-halo-kf 4s ease-in-out infinite; }
+
+  /* Phoenix Wing — warm flame glow pulse, no movement */
+  @keyframes chest-icon-phoenix-halo-kf {
+    0%, 100% { box-shadow: inset 0 0 14px rgba(255,150,40,0.25), 0 0 10px rgba(255,150,40,0.45); opacity: 0.9; }
+    50%      { box-shadow: inset 0 0 26px rgba(255,200,80,0.55), 0 0 24px rgba(255,180,60,0.9);  opacity: 1; }
+  }
+  .chest-icon-phoenix-flicker .chest-icon-halo { animation: chest-icon-phoenix-halo-kf 2.6s ease-in-out infinite; }
+
+  /* Eye of the Void — iris glow pulse only, no blink, no squish */
+  @keyframes chest-icon-eye-halo-kf {
+    0%, 100% { box-shadow: inset 0 0 12px rgba(168,85,247,0.3),  0 0 10px rgba(168,85,247,0.45); }
+    50%      { box-shadow: inset 0 0 22px rgba(192,132,252,0.65), 0 0 22px rgba(192,132,252,0.9); }
+  }
+  .chest-icon-eye-pulse .chest-icon-halo { animation: chest-icon-eye-halo-kf 3.6s ease-in-out infinite; }
+
+  /* Plasma Core — fast brightness flicker via halo only, no scale */
+  @keyframes chest-icon-plasma-halo-kf {
+    0%, 100% { box-shadow: inset 0 0 12px rgba(80,180,255,0.35),  0 0 10px rgba(80,180,255,0.5);  opacity: 0.92; }
+    25%      { box-shadow: inset 0 0 22px rgba(150,220,255,0.7),  0 0 22px rgba(120,210,255,0.95); opacity: 1; }
+    50%      { box-shadow: inset 0 0 14px rgba(80,180,255,0.4),   0 0 12px rgba(80,180,255,0.55); opacity: 0.9; }
+    75%      { box-shadow: inset 0 0 26px rgba(180,235,255,0.8),  0 0 26px rgba(150,220,255,1);   opacity: 1; }
+  }
+  .chest-icon-plasma-crackle .chest-icon-halo { animation: chest-icon-plasma-halo-kf 1.2s ease-in-out infinite; }
+
+  /* Liquid Chrome — bright reflection band sweeps across silver text */
+  @keyframes title-flair-chrome-sweep {
+    0%   { background-position: -150% 50%; }
+    100% { background-position: 250% 50%; }
+  }
+  .title-flair-liquid_chrome {
+    background-image: linear-gradient(100deg,
+      #b8c4d4 0%, #b8c4d4 35%,
+      #ffffff 48%, #f0f8ff 52%,
+      #b8c4d4 65%, #b8c4d4 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: title-flair-chrome-sweep 3s linear infinite;
+    font-weight: 700;
+    filter: drop-shadow(0 0 1px rgba(255,255,255,0.6));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* Disable browser edge-swipe-back gesture (iOS Safari / Chrome on Android).
+     Without this, an accidental left-edge swipe during a run navigates back
+     out of the game and loses the score. `overscroll-behavior` is a no-op on
+     desktop and only suppresses the navigation gesture, not legit scrolling. */
+  html, body {
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  button:focus-visible, a:focus-visible, [role="button"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible,
+  body.gamepad-active button:focus, body.gamepad-active a:focus, body.gamepad-active [role="button"]:focus, body.gamepad-active input:focus, body.gamepad-active select:focus, body.gamepad-active textarea:focus {
+    @apply outline-none ring-2 ring-cyan-500 ring-offset-2 ring-offset-slate-900 z-10;
+  }
+}
