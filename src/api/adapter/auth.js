@@ -37,7 +37,63 @@ export async function isAuthenticated() {
  * read it — `wallet_address`, `player_name`, `player_title`, `pilot_icon` —
  * because those call sites are not being edited (the seam's whole contract).
  */
+/**
+ * 🔴 me() IS CACHED, AND THAT IS NOT AN OPTIMISATION — IT IS A CORRECTION.
+ *
+ * base44's me() was a cheap session lookup. Here the only RPC that returns the
+ * player is `load_save()`, which is **27 SELECTs across 23 table reads** — it
+ * assembles the whole save document to answer "what is your wallet".
+ *
+ * There are EIGHT call sites, and one of them is not a call site but a loop:
+ * `SaveManager.js:137` polls me() up to 8 times in 4 seconds at boot to decide
+ * `walletLinked`. Uncached, a cold boot fires up to ~216 subqueries before the
+ * game draws anything. `useSessionKeepAlive` then repeats it every 10 minutes,
+ * and MaintenanceGate, AuthContext, Game, PageNotFound and two components each
+ * add their own.
+ *
+ * ⚠️ SAFE TO CACHE BECAUSE OF WHAT IT RETURNS, NOT BECAUSE IT IS CONVENIENT:
+ * identity (id, wallet, founder flag) cannot change inside a session, and the
+ * three mutable fields — player_name, player_title, pilot_icon — are written by
+ * `cs_set_profile` / `cs_equip_title`, which are the client's own calls. The
+ * TTL is short and `logout()` clears it outright, so a sign-out can never be
+ * served from cache.
+ *
+ * 🔴 The IN-FLIGHT dedupe matters more than the TTL here: SaveManager's loop and
+ * MaintenanceGate's mount fire in the same tick, and without it they issue two
+ * full load_save() calls that race.
+ *
+ * ⚠️ NOT a general result cache. `loadSave()` — the save itself — is deliberately
+ * NOT cached: it is the thing that changes.
+ */
+const ME_TTL_MS = 15_000;
+let _meAt = 0;
+let _meValue = null;
+let _meInflight = null;
+
+/** Called by logout() and after a fresh sign-in — never leave a stale identity. */
+export function clearMeCache() {
+  _meAt = 0;
+  _meValue = null;
+  _meInflight = null;
+}
+
 export async function me() {
+  if (_meValue && Date.now() - _meAt < ME_TTL_MS) return _meValue;
+  if (_meInflight) return _meInflight;
+  _meInflight = (async () => {
+    try {
+      const v = await _meUncached();
+      _meValue = v;
+      _meAt = Date.now();
+      return v;
+    } finally {
+      _meInflight = null;
+    }
+  })();
+  return _meInflight;
+}
+
+async function _meUncached() {
   const { data: sess } = await supabase.auth.getSession();
   if (!sess?.session) return null;
   const { data, error } = await supabase.rpc('load_save');
@@ -60,6 +116,7 @@ export async function me() {
 }
 
 export async function logout() {
+  clearMeCache();
   await supabase.auth.signOut();
 }
 

@@ -11,6 +11,7 @@ import { supabase } from './supabaseClient';
 import { loadSave, syncSave } from './save';
 import { saveScore } from './run';
 import { toBase44Save } from './shape';
+import { clearMeCache } from './auth';
 import { fromPostgrest } from './errors';
 
 const warned = new Set();
@@ -48,17 +49,54 @@ const HANDLERS = {
   /**
    * ⚠️ THE VERSION LIVES AT save.version, NOT AT THE TOP LEVEL. H-20's
    * optimistic-concurrency version is required and sync_save raises on null.
-   * The projection in ./shape.js lifts it to the top of the base44-shaped save,
-   * so `p.saveData.version` now resolves — but a caller that hands us the RAW
-   * document still needs the nested read, hence both.
-   * (save.js's own comment says to carry it from load_save().period. That is
-   * wrong and is corrected there.)
+   * ./shape.js lifts it to the top of the base44-shaped save so
+   * `p.saveData.version` resolves; a caller handing us the RAW document still
+   * needs the nested read, hence both.
+   *
+   * 🔴🔴 FIXED 2026-08-14 — THE VERSION HANDSHAKE WAS OPEN-ENDED, AND IT IS
+   * D-219's SHAPE FOR THE THIRD TIME: THE SEAM MUST RETURN THE *CALLER'S*
+   * ENVELOPE, NOT THE RPC'S.
+   *
+   *   · `sync_save` bumps the row and returns `{version, updated_at}` — and
+   *     DELIBERATELY not the save (its own comment says so: returning it is
+   *     what forced base44's client to keep a CLIENT_OWNED_OVERRIDES list).
+   *   · `SaveManager.syncToBackend` adopts `res.data.saveData` over its local
+   *     copy — that adoption is the ONLY way a cloud-owned field reaches
+   *     localStorage after a sync.
+   *   · So when this handler returned sync_save's raw object, the client's
+   *     stored `version` NEVER ADVANCED. The next sync sent the stale one and
+   *     `sync_save` raised `version conflict — reload` (its line 89) on every
+   *     call from then on.
+   *
+   * 🔴 AND THE SYMPTOM WAS NOT AN ERROR MESSAGE. SaveManager dispatches
+   * `saveSyncStart` up front, `saveSyncSuccess` only on success, and
+   * `syncFailed` only after THREE failures — so `SaveStatusIndicator` sat on
+   * "syncing" forever. The save was not stuck; the HANDSHAKE was, and the UI
+   * had no vocabulary for "failing but not yet three times".
+   *
+   * ⚠️ `updated_at` MUST BE EPOCH MILLISECONDS. `sync_save` returns a
+   * timestamptz string and the client does `Number(localData.updated_at)` to
+   * compare staleness — a string there yields NaN and every later comparison
+   * silently reads as "local is older". Same class of bug as D-224: two
+   * vocabularies for one idea.
+   *
+   * 🔴 `saveData` carries ONLY the version, on purpose. SaveManager merges
+   * `{...freshLocal, ...res.data.saveData}`, so a partial is exactly right —
+   * it adopts the cloud-owned field and touches nothing the player just
+   * edited. Returning the whole projected save here would re-introduce the
+   * clobber that comment at SaveManager:405 exists to prevent.
    */
-  syncSave: async (p) =>
-    syncSave(
+  syncSave: async (p) => {
+    const data = await syncSave(
       p?.saveData ?? p,
       p?.expectedVersion ?? p?.saveData?.version ?? p?.saveData?.save?.version ?? p?.version
-    ),
+    );
+    return {
+      saveData: { version: data?.version },
+      updated_at: data?.updated_at ? Date.parse(data.updated_at) || Date.now() : Date.now(),
+      version: data?.version,
+    };
+  },
 
   /**
    * 🔴 THE ENTIRE SIGN-IN PATH, AND IT WAS ONE REGISTRY LINE.
@@ -101,6 +139,9 @@ const HANDLERS = {
     // and that panel is the only diagnostic a player-facing failure has.
     if (error) return { error: error.message || 'Sign-in failed.' };
     if (!data || data.error) return { error: data?.error || 'Sign-in failed.' };
+
+    // A fresh sign-in must never be answered from the previous identity's cache.
+    clearMeCache();
 
     // 🔴 THE STEP NOTHING ELSE DOES. Every RPC after this reads the caller from
     // the JWT (D-45); without setSession there is no JWT.
