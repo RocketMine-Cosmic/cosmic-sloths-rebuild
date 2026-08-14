@@ -185,49 +185,13 @@ const HANDLERS = {
   },
 
   /**
-   * The single `stubbed` name (D-185 — do not add a second). There is no
-   * maintenance concept server-side yet and the dark build is never in
-   * maintenance, so throwing would stop the game booting for a reason that is
-   * not real. It warns once per session so the stub is visible rather than
-   * forgotten — H-31's gate is a client fix that ships here.
-   *
-   * 🔴🔴 FIXED 2026-08-14 — THE STUB RETURNED THE WRONG SHAPE AND HARD-GATED THE
-   * WHOLE APP. It returned base44's `{ enabled, message }`. Its consumer is
-   * `lib/maintenanceStatus.js`, which reads `data?.mode || 'normal'` — a
-   * DIFFERENT vocabulary — and `MaintenanceGate.jsx` then does:
-   *
-   *     if (state.mode === 'off')  return null;
-   *     if (state.mode === 'soft') { …banner… }
-   *     // hard
-   *     return <full-screen overlay>;
-   *
-   * 🔴 **THE FALL-THROUGH IS THE HARD GATE.** Anything that is not exactly
-   * 'off' or 'soft' renders the blocking overlay — including `maintenanceStatus`'s
-   * OWN DEFAULT of 'normal'. So a stub with no `mode` field produced a
-   * full-screen "Season 6 Rollout" lockout on a build with no maintenance state
-   * at all, and the only escape is the admin bypass, which needs a `role` this
-   * database has no public way to answer (see below).
-   *
-   * ⚠️ AND THE FILE'S OWN COMMENT SAYS THE OPPOSITE — "Fails OPEN — if the
-   * function errors we treat it as 'off' so a backend hiccup never locks players
-   * out." It fails CLOSED. base44 masks it by always sending a real `mode`.
-   *
-   * 🔴 SO RETURN THE CONSUMER'S VOCABULARY, NOT base44's. `enabled` is kept only
-   * because it costs nothing; `mode: 'off'` is the field that is actually read.
+   * The single `stubbed` name. There is no maintenance concept server-side yet
+   * and the dark build is never in maintenance, so throwing would stop the game
+   * booting for a reason that is not real. It warns once per session so the
+   * stub is visible rather than forgotten — H-31's gate is a client fix that
+   * ships here, and this is where it will land.
    */
-  getMaintenanceMode: async () => ({
-    mode: 'off',
-    message: '',
-    omenxPurchasesDisabled: false,
-    omenxPurchasesMessage: '',
-    globalXpBuff: null,
-    // Empty = no version gate. A non-empty value here would gate every client
-    // whose APP_VERSION is lower, with the same non-admin-escapable overlay.
-    minClientVersion: '',
-    minClientVersionMessage: '',
-    enabled: false,
-    _adapterStub: true,
-  }),
+  getMaintenanceMode: async () => ({ enabled: false, message: null, _adapterStub: true }),
 };
 
 export async function invoke(name, payload) {
