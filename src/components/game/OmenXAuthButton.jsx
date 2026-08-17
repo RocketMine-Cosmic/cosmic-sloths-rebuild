@@ -4,6 +4,7 @@ import { clearAuthFromIndexedDB } from '@/lib/indexedDbAuth';
 import { stampAuthWeek } from '@/lib/omenxSessionWeek';
 import { base44 } from '@/api/base44Client';
 import { useOmenXAuth } from '@/lib/OmenXAuthContext';
+import { waitForOmenAuth, isPopupBlockedError } from '@/lib/awaitOmenAuth';
 
 const STORAGE_KEY = 'omenx_auth_data';
 
@@ -73,31 +74,49 @@ export default function OmenXAuthButton({ fullWidth = false, onAuthChange }) {
     const handleConnectWallet = async () => {
         setLoading(true);
         setSuccessMsg('');
-        // Safety net: if omenx.authenticate() silently fails (mobile Safari popup
-        // blockers, SDK edge cases), the button used to just sit doing nothing.
-        // Detect that and surface a clear error + reset so the user can retry.
-        // 2026-07-08 (Briantjeuh Discord report): "connect wallet does nothing"
-        // on mobile after logging out and clearing cache.
+        /**
+         * 🔴 omenx.authenticate() NEVER RESOLVES HERE — see `lib/awaitOmenAuth.js`.
+         * It waits for `omenx_oauth_callback_<state>` so it can run its own exchange;
+         * ours goes through the `omen-auth` Edge Function because that mints the
+         * Supabase session, and the code is single-use. So completion is detected by
+         * the auth landing, never by that promise.
+         *
+         * ⚠️ Keeps faith with the Briantjeuh report (2026-07-08, *"connect wallet does
+         * nothing"* on mobile Safari after logout + cache clear) — a blocked popup is
+         * still reported, but now only when the SDK ACTUALLY rejects for that reason.
+         * The old 1.5s "did the page navigate?" test was written for a redirect flow;
+         * the SDK opens a popup, which never navigates the opener, so it fired that
+         * warning on every successful sign-in too.
+         */
         const redirectUri = getRedirectUri();
-        let navigated = false;
-        const beforeUnload = () => { navigated = true; };
-        window.addEventListener('beforeunload', beforeUnload);
-        try {
-            await omenx.authenticate({ redirectUri, enablePKCE: true });
-        } catch (err) {
-            console.error('[OmenXAuthButton] authenticate threw:', err);
+
+        // Subscribe before opening, so a fast completion can't slip through the gap.
+        const authArrived = waitForOmenAuth({ timeoutMs: 120_000 });
+
+        let popupBlocked = false;
+        const sdkFailed = omenx
+            .authenticate({ redirectUri, enablePKCE: true })
+            .then(() => null)
+            .catch((err) => {
+                popupBlocked = isPopupBlockedError(err);
+                console.error('[OmenXAuthButton] authenticate rejected:', err);
+                return null;
+            });
+
+        const landed = await Promise.race([authArrived, sdkFailed]);
+        setLoading(false);
+
+        if (landed?.walletAddress) {
+            setSuccessMsg('✓ Wallet connected');
+            setTimeout(() => setSuccessMsg(''), 4000);
+            return;
         }
-        // Give the SDK ~1.5s to actually trigger a page navigation (redirect flow).
-        // If we're still here after that, something silently failed — reset the
-        // button and show a hint so the user knows what to do next.
-        setTimeout(() => {
-            window.removeEventListener('beforeunload', beforeUnload);
-            if (!navigated && document.visibilityState === 'visible') {
-                setLoading(false);
-                setSuccessMsg('Connect didn\'t open. Please allow pop-ups and try again, or reload the page.');
-                setTimeout(() => setSuccessMsg(''), 8000);
-            }
-        }, 1500);
+        setSuccessMsg(
+            popupBlocked
+                ? 'Pop-ups are blocked — allow them for this site and tap Connect again.'
+                : 'Sign-in didn\'t complete. Tap Connect Wallet to try again.'
+        );
+        setTimeout(() => setSuccessMsg(''), 8000);
     };
 
     const handleLogout = async () => {

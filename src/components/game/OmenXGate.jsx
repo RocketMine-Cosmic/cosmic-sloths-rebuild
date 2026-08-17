@@ -3,6 +3,7 @@ import SpaceBackground from './SpaceBackground';
 import { useOmenXAuth } from '@/lib/OmenXAuthContext';
 import { base44 } from '@/api/base44Client';
 import { omenx, getRedirectUri } from '@/lib/omenx';
+import { waitForOmenAuth, isPopupBlockedError } from '@/lib/awaitOmenAuth';
 
 export default function OmenXGate({ children, isCarousel }) {
     // Read shared auth state — no per-gate `me` call (was 13× across the carousel).
@@ -48,27 +49,49 @@ export default function OmenXGate({ children, isCarousel }) {
         title = 'Wallet Required';
         subtitle = 'Connect your OmenX wallet to access this area.';
         ctaLabel = ctaLoading ? 'Connecting…' : 'Connect Wallet';
+        /**
+         * 🔴 DO NOT await omenx.authenticate() AS THE SUCCESS SIGNAL — IT NEVER
+         * RESOLVES HERE, BY DESIGN. It waits for `omenx_oauth_callback_<state>` so it
+         * can run its own code exchange; ours runs through the `omen-auth` Edge
+         * Function instead because that is what mints the Supabase session, and an
+         * authorization code is single-use. See `lib/awaitOmenAuth.js` for the full
+         * reasoning.
+         *
+         * ⚠️ The previous version awaited it and then guessed from a 1.5s "did the
+         * page navigate?" check written for a REDIRECT flow. The SDK opens a POPUP,
+         * which never navigates the opener — so that check failed every time and
+         * showed "Connect didn't open. Please allow pop-ups" **on every successful
+         * sign-in**, resetting the button while the popup was still open.
+         */
         ctaAction = async () => {
             setCtaError('');
             setCtaLoading(true);
-            let navigated = false;
-            const beforeUnload = () => { navigated = true; };
-            window.addEventListener('beforeunload', beforeUnload);
-            try {
-                await omenx.authenticate({ redirectUri: getRedirectUri(), enablePKCE: true });
-            } catch (e) {
-                console.error('[OmenXGate] authenticate threw:', e);
-            }
-            // If no navigation kicks off within 1.5s, the SDK silently failed
-            // (typically mobile Safari blocking a popup). Surface a clear
-            // message so the user knows they need to retry / allow pop-ups.
-            setTimeout(() => {
-                window.removeEventListener('beforeunload', beforeUnload);
-                if (!navigated && document.visibilityState === 'visible') {
-                    setCtaLoading(false);
-                    setCtaError('Connect didn\'t open. Please allow pop-ups for this site and tap Connect Wallet again. If it still fails, reload the page and retry.');
-                }
-            }, 1500);
+
+            // Start listening BEFORE the popup opens, so a fast completion can't
+            // land in the gap between opening and subscribing.
+            const authArrived = waitForOmenAuth({ timeoutMs: 120_000 });
+
+            let popupBlocked = false;
+            // The SDK's only rejection we can act on is a blocked popup; on success
+            // this promise simply never settles, so it must not be raced as a win.
+            const sdkFailed = omenx
+                .authenticate({ redirectUri: getRedirectUri(), enablePKCE: true })
+                .then(() => null)
+                .catch((e) => {
+                    popupBlocked = isPopupBlockedError(e);
+                    console.error('[OmenXGate] authenticate rejected:', e);
+                    return null;
+                });
+
+            const landed = await Promise.race([authArrived, sdkFailed]);
+            setCtaLoading(false);
+
+            if (landed?.walletAddress) return; // context updates and the gate opens itself
+            setCtaError(
+                popupBlocked
+                    ? 'Connect didn\'t open — pop-ups are blocked for this site. Allow pop-ups and tap Connect Wallet again.'
+                    : 'Sign-in didn\'t complete. If you closed the Omen window, tap Connect Wallet to try again.'
+            );
         };
     }
 
