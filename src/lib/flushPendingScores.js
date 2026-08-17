@@ -130,7 +130,16 @@ export async function flushPendingScores() {
                 // toast, queued-for-retry runs (long endless / tab-killed Android runs)
                 // recover silently and players have no idea their score was credited.
                 try {
-                    const sd = entry.payload?.scoreData || {};
+                    // 043: entries queued by Game.jsx now carry { stats, isVictory,
+                    // clientRunUuid } — the engine's own object, because the adapter
+                    // refuses base44's scoreData (D-184). Read EITHER shape: the two
+                    // snapshot promoters below still build the old one, and an entry
+                    // the toast cannot describe is not a reason to hide from the
+                    // player that their run landed.
+                    const st = entry.payload?.stats;
+                    const sd = st
+                        ? { arena_id: st.isEndless ? 'endless' : st.arenaId, time_survived: st.time, level: st.level, kills: st.kills }
+                        : (entry.payload?.scoreData || {});
                     const arenaLabel = ARENA_LABELS[sd.arena_id] || sd.arena_id || 'Arena';
                     const score = res?.data?.score;
                     const gold = res?.data?.goldCredited;

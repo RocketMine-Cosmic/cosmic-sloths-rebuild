@@ -143,6 +143,8 @@ export function updateEnemies(engine, dt) {
                     // Accumulate per-run so saveScore credits these to PlayerSave at run end.
                     // Was missing — boss frags showed in HUD but never reached the server.
                     engine.runFragments = (engine.runFragments || 0) + finalFrags;
+                    // Boss half, kept separately for save_score's parameter split (D-78).
+                    engine.bossFragments = (engine.bossFragments || 0) + finalFrags;
                     engine.callbacks.onFragmentFound(finalFrags);
                     creditedFrags = finalFrags;
                     engine.addDamageText(e.x, e.y - 40, `+${finalFrags} Relic Fragment!`, '#a855f7');
@@ -180,6 +182,8 @@ export function updateEnemies(engine, dt) {
                     // bites runaway whale stacks. (Balance pass 2026-05-06 — Tijckers 249k run.)
                     const finalGold = Math.min(3000, Math.floor(extraGold * engine.player.goldMult * nftFactor));
                     engine.gold += finalGold;
+                    // Boss half, kept separately for save_score's parameter split (D-78).
+                    engine.bossGold = (engine.bossGold || 0) + finalGold;
                     engine.callbacks.onGoldChange(engine.gold);
                     creditedGold = finalGold;
                     engine.addDamageText(e.x, e.y - 20, `+${finalGold.toLocaleString()} GOLD`, '#ffd700');
