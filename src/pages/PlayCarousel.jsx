@@ -26,6 +26,7 @@ import Jukebox from './Jukebox';
 import Titles from './Titles';
 import Wardrobe from './Wardrobe';
 import SquadWars from './SquadWars';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const SLIDE_LABELS = [
     { name: 'Main Menu', color: 'text-white' },
@@ -49,7 +50,19 @@ const SLIDE_LABELS = [
 
 // Renders a slide ONLY when it's active or adjacent. Off-screen slides stay
 // as empty divs (carousel layout preserved) until the user navigates near them.
-function LazySlide({ children, shouldMount }) {
+//
+// 🔴 EVERY SLIDE IS WRAPPED IN AN ErrorBoundary, AND THE "adjacent" PART ABOVE IS
+// WHY THAT MATTERS SO MUCH. `isNear` mounts the active slide AND its neighbours,
+// so before 2026-08-17 a throw in slide 4 (Hall of Fame — unported entity reads)
+// also killed slides 3 and 5, and slide 5 (Sloth Squads, 12 unported calls) killed
+// 4 and 6. Two broken slides took down most of the carousel, which is why Rob saw
+// *"all pages are white screen till i refresh the whole page"* — including pages
+// that work perfectly on their own.
+//
+// The boundary goes HERE rather than around each of the 17 call sites because this
+// is the one component every slide already passes through: one wrap protects the
+// lot, and a slide added later is covered without anyone remembering to.
+function LazySlide({ children, shouldMount, label }) {
     const [hasMounted, setHasMounted] = useState(shouldMount);
 
     useEffect(() => {
@@ -59,7 +72,7 @@ function LazySlide({ children, shouldMount }) {
 
     return (
         <div className="flex-[0_0_100%] min-w-0 min-h-0 h-full overflow-y-auto select-none transform-gpu" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {hasMounted ? children : null}
+            {hasMounted ? <ErrorBoundary label={label}>{children}</ErrorBoundary> : null}
         </div>
     );
 }
@@ -184,23 +197,23 @@ export default function PlayCarousel() {
                 ref={emblaRef}
             >
                 <div className="flex h-full min-h-0 touch-pan-y">
-                    <LazySlide shouldMount={isNear(0)}><MainMenu isCarousel={true} onNavigateToPlay={() => emblaApi?.scrollTo(1)} /></LazySlide>
-                    <LazySlide shouldMount={isNear(1)}><Hub isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(2)}><Dailys isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(3)}><Upgrades isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(4)}><LeaderboardPage isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(5)}><Squads isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(6)}><SquadWars isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(7)}><Bestiary isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(8)}><SynergyCodex isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(9)}><Mastery isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(10)}><LeviathanTrials isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(11)}><GlobalRaid isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(12)}><NFTDashboard isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(13)}><Profile isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(14)}><Jukebox isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(15)}><Titles isCarousel={true} /></LazySlide>
-                    <LazySlide shouldMount={isNear(16)}><Wardrobe isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(0)} label={SLIDE_LABELS[0]?.name}><MainMenu isCarousel={true} onNavigateToPlay={() => emblaApi?.scrollTo(1)} /></LazySlide>
+                    <LazySlide shouldMount={isNear(1)} label={SLIDE_LABELS[1]?.name}><Hub isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(2)} label={SLIDE_LABELS[2]?.name}><Dailys isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(3)} label={SLIDE_LABELS[3]?.name}><Upgrades isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(4)} label={SLIDE_LABELS[4]?.name}><LeaderboardPage isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(5)} label={SLIDE_LABELS[5]?.name}><Squads isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(6)} label={SLIDE_LABELS[6]?.name}><SquadWars isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(7)} label={SLIDE_LABELS[7]?.name}><Bestiary isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(8)} label={SLIDE_LABELS[8]?.name}><SynergyCodex isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(9)} label={SLIDE_LABELS[9]?.name}><Mastery isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(10)} label={SLIDE_LABELS[10]?.name}><LeviathanTrials isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(11)} label={SLIDE_LABELS[11]?.name}><GlobalRaid isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(12)} label={SLIDE_LABELS[12]?.name}><NFTDashboard isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(13)} label={SLIDE_LABELS[13]?.name}><Profile isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(14)} label={SLIDE_LABELS[14]?.name}><Jukebox isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(15)} label={SLIDE_LABELS[15]?.name}><Titles isCarousel={true} /></LazySlide>
+                    <LazySlide shouldMount={isNear(16)} label={SLIDE_LABELS[16]?.name}><Wardrobe isCarousel={true} /></LazySlide>
                 </div>
             </div>
 

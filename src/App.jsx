@@ -46,6 +46,7 @@ import { updateOmenXUser } from '@/lib/omenxUser';
 import { SoundManager } from './game/SoundManager';
 import GamepadManager from './components/GamepadManager';
 import Base44AuthLinker from './components/Base44AuthLinker';
+import ErrorBoundary from './components/ErrorBoundary';
 import MaintenanceGate from './components/MaintenanceGate';
 import SyncStatusBanner from './components/SyncStatusBanner';
 import DailyGoalBanner from './components/squads/DailyGoalBanner';
@@ -249,11 +250,13 @@ function App() {
           <Router>
           <MaintenanceGate />
           <React.Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-slate-950"><div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div></div>}>
-            <Routes>
-              {/* OmenX OAuth callback */}
-              <Route path="/auth/callback" element={<OmenXCallback />} />
-              <Route path="*" element={<MainApp />} />
-            </Routes>
+            <ErrorBoundary label="Cosmic Sloths">
+              <Routes>
+                {/* OmenX OAuth callback */}
+                <Route path="/auth/callback" element={<OmenXCallback />} />
+                <Route path="*" element={<MainApp />} />
+              </Routes>
+            </ErrorBoundary>
           </React.Suspense>
         </Router>
         <Toaster />
