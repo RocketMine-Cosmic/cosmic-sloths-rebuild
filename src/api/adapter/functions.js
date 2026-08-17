@@ -187,7 +187,97 @@ const HANDLERS = {
         400
       );
     }
-    return saveScore({ ...stats, isVictory: p.isVictory ?? stats.isVictory });
+    // 🔴 THE QUEUED RUN CARRIES ITS OWN UUID — 043. saveScore()'s default is
+    // openRunUuid(), which reads localStorage AT CALL TIME. flushPendingScores()
+    // runs on launch, on tab focus and on `walletLinked`, i.e. concurrently with
+    // a fresh startRun() — so a queued run resolved through the default would be
+    // submitted against whichever run happens to be open, finalising it with
+    // another run's numbers before it had been played. An explicit uuid, or the
+    // default only when the caller genuinely means "the run I just finished".
+    const result = await saveScore(
+      { ...stats, isVictory: p.isVictory ?? stats.isVictory },
+      p.clientRunUuid ?? undefined
+    );
+
+    // 🔴🔴 THE RETURN IS snake_case AND EVERY CONSUMER READS camelCase — 043.
+    //
+    // This is D-218/D-219's shape for the third time, and it fails SILENTLY,
+    // which is why it earns the paragraph. Game.jsx's two run-end handlers
+    // (:465 game-over, :577 victory) both open with:
+    //
+    //     saveScore(stats, …).then((res) => { if (res?.success) { … } })
+    //
+    // save_score() returns `ok`, not `success`. So on a perfectly credited run
+    // that branch is skipped whole: the modal never leaves its spinner, the
+    // recovery snapshot in `pending_run_snapshot` is never cleared, and
+    // `_serverConfirmed` never becomes true. No error, no warning, nothing in
+    // the console — the row is in the database and the player is told nothing.
+    //
+    // 🟢 The good news, and why this is a mapping rather than a page edit: the
+    // modals ALREADY read the server's figures instead of the engine's, and
+    // Game.jsx sets `stats.score = null` up front on purpose so no prediction is
+    // ever shown. D-183 is satisfied the moment the names line up.
+    //
+    // ⚠️ `saveData` is base44's, not ours. base44's saveScore returned the whole
+    // updated save and SaveManager adopts it; save_score DELIBERATELY does not
+    // (returning it is what forced base44's CLIENT_OWNED_OVERRIDES list), so it
+    // is read here with load_save() and projected by shape.js. BEST-EFFORT on
+    // purpose: the run is already credited by the time we reach this line, so a
+    // failed read must not turn a successful run into a `_saveFailed` modal.
+    // Omitted on failure, which makes Game.jsx skip its merge and keep the local
+    // save — stale gold until the next load, never a lost run.
+    let saveData;
+    try {
+      saveData = toBase44Save(await loadSave());
+    } catch (e) {
+      console.warn(
+        '[adapter] saveScore: the run WAS credited, but the post-run load_save() failed. ' +
+          'The modal shows the server figures and the local save is left alone:',
+        e?.message || e
+      );
+    }
+
+    // Nothing on the client reads these three yet, and a silent drop reads as
+    // "nothing was dropped" — save_score's own words about unknown enemy ids.
+    // Print them rather than pretend they do not exist.
+    if (Array.isArray(result?.unknown_enemy_ids) && result.unknown_enemy_ids.length) {
+      console.warn(
+        '[adapter] save_score DROPPED unknown enemy ids — this build named enemies the database has no row for:',
+        result.unknown_enemy_ids
+      );
+    }
+    if (Array.isArray(result?.titles_unlocked) && result.titles_unlocked.length) {
+      console.log('[adapter] call signs unlocked by this run (D-153/D-162, permanent):', result.titles_unlocked);
+    }
+    if (result?.nft_bonus_fragments) {
+      console.log(
+        `[adapter] the server's own NFT relic roll added ${result.nft_bonus_fragments} fragment(s). ` +
+          "The HUD's figure was the CLIENT's roll and is not authoritative — D-183."
+      );
+    }
+
+    return {
+      // base44's envelope, because the call sites are written against it.
+      success: !!result?.ok,
+      score: result?.score,
+      goldCredited: result?.gold_credited,
+      killsCredited: result?.kills_credited,
+      fragmentsCredited: result?.fragments_credited,
+      grantedCharacter: result?.granted_character ?? null,
+      unlockedArena: result?.unlocked_arena ?? null,
+      ...(saveData ? { saveData } : {}),
+      // ⚠️ DELIBERATELY ABSENT, NOT ZERO: base44 also returned `timeSurvived`
+      // and three `*Capped` flags. save_score returns none of them — its caps
+      // are applied inside the score rather than reported beside it. Game.jsx
+      // falls back with `res.timeSurvived ?? s.time`, so absent is the value
+      // that keeps the engine's own duration on the modal; a 0 here would read
+      // as "the server says the run lasted no time" (D-222's rule, one domain
+      // over).
+      //
+      // The rebuild's own result under its real names, for anything written
+      // against the server instead of against base44.
+      _result: result,
+    };
   },
 
   spendGold: async (p) => {

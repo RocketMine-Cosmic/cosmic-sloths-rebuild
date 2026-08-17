@@ -10,7 +10,10 @@ import VictoryModal from '../components/game/VictoryModal';
 import VirtualJoystick from '../components/game/VirtualJoystick';
 import PauseModal from '../components/game/PauseModal';
 import OmenXConfirmation from '../components/game/OmenXConfirmation';
-import { base44 } from '@/api/base44Client';
+// 043: `cs` is the second export of the same seam — the calls that have no
+// base44 NAME and therefore no invoke() route. cs_start_run is the first of
+// them the game has ever needed: base44 had no run-start call to port.
+import { base44, cs } from '@/api/base44Client';
 import moment from 'moment';
 import { IN_GAME_SKUS } from '@/lib/skuMap';
 import { getReviveForRun } from '@/lib/reviveTiers';
@@ -186,54 +189,72 @@ export default function Game() {
                 SaveManager.save(save);
             }
 
+        // 043: this run's server-side identity, set by cs_start_run below and
+        // captured by the saveScore closure. Held HERE rather than read from
+        // localStorage at submit time: flushPendingScores() fires on launch, on
+        // tab focus and on `walletLinked`, so `openRunUuid()` at run end can be a
+        // different run's key. The uuid of the run you played is the uuid you
+        // were given when you started it.
+        let clientRunUuid = null;
+
         const saveScore = async (stats, isVictory) => {
             const user = getOmenXUserSync();
-            if (!user) return null;
+            // 043: same reason as the name guard below — a null return resolves
+            // the promise and the modal spins forever. `omenx_auth_data` missing
+            // means there is no signed-in identity at all, which is worth saying.
+            if (!user) throw new Error('[saveScore] No signed-in identity (omenx_auth_data absent) — run not submitted.');
             const displayName = user.player_name || user.full_name;
-            const walletAddress = user.walletAddress;
 
             if (!displayName || displayName.includes('@') || displayName.includes('0x') || displayName.trim() === '') {
-                console.warn('[saveScore] No proper pilot name — score not recorded');
-                return null;
+                // 043: THROW rather than return null. A null resolves the promise,
+                // so `if (res?.success)` simply skipped and the modal span its
+                // spinner for a run nobody was ever going to submit — with a
+                // console.warn as the only trace. The modal's .catch already
+                // renders _saveFailed, so a refusal with a reason costs nothing.
+                // ⚠️ The name is no longer part of the submission: save_score takes
+                // no name and reads the call sign from `players` itself (D-155).
+                // This guard is now only about not scoring a run for an identity
+                // the client cannot name at all.
+                throw new Error('[saveScore] No proper pilot name — run not submitted.');
             }
 
-            const arena_id = isEndless ? 'endless' : (stats.arenaId || arenaId);
-            const pilotIcon = user.pilot_icon || user.data?.pilot_icon || '🦥';
-
-            // Server validates, recomputes score, and writes run aggregates to PlayerSave.
-            const scoreData = {
-                player_name: displayName,
-                player_title: user.data?.player_title || '',
-                pilot_icon: pilotIcon,
-                time_survived: stats.time,
-                level: stats.level,
-                kills: stats.kills,
-                character_id: stats.characterId || characterId,
-                arena_id,
-                gold: stats.gold,
-                fragments: stats.fragments || 0,
-                is_victory: !!isVictory,
-                encountered: stats.encountered || [],
-                enemyKills: stats.enemyKills || {},
-                // S7 §4f: difficulty + DD peak feed the server-side HEAT score
-                // bonus (up to ×2.0). Engine emits these in _runStats.
-                difficulty: stats.difficulty || difficultyId,
-                ddPeakSpawnMult: stats.ddPeakSpawnMult || 1.0,
-                // S8 Sandbox — server one-way rejects this on true, no score/kill/gold
-                // credited. See PLAN_SANDBOX_TEST_PLAY.md §Server guards.
-                is_sandbox: isSandbox,
+            // 🔴🔴 THE ENGINE'S OWN STATS, NOT base44's scoreData — 043, D-184.
+            //
+            // scoreData was a strict SUBSET and the adapter refuses it with a 400
+            // that names this line, because the three fields it drops are the
+            // three save_score cannot do without:
+            //
+            //   bossesKilled  — bounds boss gold at kills × 3000 and derives boss
+            //                   fragments from the modifiers recorded at start
+            //   elitesKilled  — never sent at all; base44's server recomputed it
+            //   bossGold /
+            //   bossFragments — the SPLIT. The engine folds the boss auto-credit
+            //                   into `gold` and `runFragments` for the HUD, so
+            //                   sending the totals as the pickup figures
+            //                   DOUBLE-PAYS fragments and bypasses the gold bound
+            //                   (D-78/D-182). The adapter refuses rather than
+            //                   guess, which is why it must be handed `stats`.
+            //
+            // ⚠️ EVERY OTHER FIELD scoreData CARRIED IS NOW SERVER-OWNED, not
+            // dropped: player_name / player_title / pilot_icon come from `players`
+            // (D-155 reads the call sign AT RUN START and freezes it), arena_id,
+            // character_id, difficulty and is_sandbox come from the run row
+            // cs_start_run wrote and cs_run_params_immutable() will not let this
+            // call change. Passing them again would be an invitation to disagree.
+            //
+            // ⚠️ squadStats IS GONE, and that is D-126/D-127, not an oversight:
+            // the weekly squad-kills board is being rebuilt FROM `run_scores`
+            // rather than from a client-reported counter, because a player opening
+            // the Squad page zeroed base44's. save_score takes no squad argument.
+            const payload = {
+                stats,
+                isVictory: !!isVictory,
+                // The uuid of the run that was actually played — see the note at
+                // its declaration. Absent means cs_start_run never succeeded, and
+                // the adapter's 409 says exactly that instead of scoring a
+                // different run.
+                clientRunUuid,
             };
-
-            // Read squad membership from local cache to avoid a network round-trip
-            let squadStats = null;
-            try {
-                const cached = localStorage.getItem(`squad_membership_${walletAddress}`);
-                if (cached) {
-                    squadStats = { squadId: JSON.parse(cached).squad_id, kills: stats.kills };
-                }
-            } catch (_) {}
-
-            const payload = { scoreData, squadStats };
 
             // Retry with tight backoff. Most saves succeed on the first attempt
             // (logs show 1-3s end-to-end). When 429s hit, we want to retry quickly
@@ -384,6 +405,55 @@ export default function Game() {
         } catch (e) {
             // NFT data unavailable — no bonus applied
         }
+
+        // 🔴🔴 START THE RUN SERVER-SIDE BEFORE THE ENGINE EXISTS — 043.
+        //
+        // base44 created its RunScore row at run END, so there was no call here
+        // to port and none was ever written: `startRun` existed in the adapter
+        // and in the whole shipped bundle it was referenced exactly once, by its
+        // own export. The rebuild records the run's PARAMETERS first — arena,
+        // character, difficulty, boss modifiers, sandbox flag —
+        // cs_run_params_immutable() then refuses to let save_score change any of
+        // them, and that is where H-7, H-8 and half of D-78 are closed. With no
+        // started run, buildScoreArgs throws 409 and the run cannot be submitted
+        // at all, so this is not optional and it cannot move below the engine.
+        //
+        // 🔴 THE ARENA ID IS THE ONE save_score WILL SCORE BY, and an endless run
+        // does NOT carry 'endless' in runConfig — it keeps its SECTOR id and
+        // GameEngine only makes the duration Infinite (GameEngine.js:287).
+        // Sending the sector id would have the server score an endless run as a
+        // sector run: HEAT applied where the engine has no dynamic difficulty, a
+        // boss cap of `sector_index % 2` instead of `duration/180 + 1`, victory
+        // reachable, and the whole endless gold rule inverted. base44's scoreData
+        // mapped it the same way at :200 — this is that mapping, moved earlier.
+        // 'endless' is a row in `arenas` and one of the three ids cs_start_run
+        // leaves ungated, alongside world_boss_arena and quantum_meteor.
+        let runStartError = null;
+        try {
+            clientRunUuid = await cs.startRun({
+                arenaId: isEndless ? 'endless' : arenaId,
+                characterId,
+                difficulty: difficultyId || 'normal',
+                // The engine reads the same object at GameEngine.js:544, so the
+                // recorded modifiers and the played ones are one source.
+                bossModifiers: save.bossModifiers || {},
+                isSandbox,
+            });
+        } catch (e) {
+            // NOT fatal to the launch, and deliberately so: a refusal here means
+            // a character that is not unlocked, an arena that is not, or a
+            // dropped connection, and leaving the player at a dead canvas fixes
+            // none of them. The run plays; saveScore then throws its own 409
+            // naming the missing run, which the modal already surfaces as
+            // _saveFailed. Loud at both ends rather than a silent unscored run.
+            runStartError = e;
+            console.error(
+                '[startRun] cs_start_run FAILED — this run cannot be scored. ' +
+                    'Everything below still runs; the run-end save will refuse and say why:',
+                e?.message || e
+            );
+        }
+        if (cancelled) return;
 
         const engine = new GameEngine(canvas, characterId, arenaId, difficultyId, save, {
             // PERF 2026-08-07 — these three used to call setGameState directly.

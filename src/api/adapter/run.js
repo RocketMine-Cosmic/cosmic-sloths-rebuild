@@ -66,6 +66,16 @@ function newRunUuid() {
  */
 export async function startRun({ arenaId, characterId, difficulty, bossModifiers, isSandbox }) {
   const clientRunUuid = newRunUuid();
+  // 🔴 CLEAR THE OLD KEY BEFORE WE ASK, NOT AFTER WE SUCCEED — 043.
+  // saveScore() defaults its uuid to openRunUuid(), so if cs_start_run refuses
+  // (a character not owned, a locked arena, a dropped connection) and the
+  // PREVIOUS run's key were still in localStorage, the run about to be played
+  // would be submitted against that already-final run. save_score's H-21 branch
+  // answers `duplicate: true` with `gold_credited: 0` — an ok response, no
+  // credit, and a run that silently vanished. With no key at all buildScoreArgs
+  // throws 409 and names the cause. Refuse loudly rather than score a run the
+  // player did not play.
+  clearOpenRun();
   const { data, error } = await supabase.rpc('cs_start_run', {
     p_client_run_uuid: clientRunUuid,
     p_arena_id: arenaId,

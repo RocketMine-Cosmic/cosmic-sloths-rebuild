@@ -553,6 +553,15 @@ export class GameEngine {
         // sent to saveScore at run end where the SERVER credits PlayerSave.relicFragments
         // (client cannot bump that field — syncSave blocks it as anti-cheat).
         this.runFragments = 0;
+        // D-78 / save_score's parameter contract. The boss auto-credit is folded
+        // into this.gold and this.runFragments for the HUD, exactly as base44 did,
+        // AND accumulated separately here because the server needs the pickup
+        // figures to EXCLUDE it: p_pickup_fragments plus the server's own derived
+        // boss fragments would otherwise double-pay, and folding boss gold into
+        // p_pickup_gold bypasses its least(_, boss_kills * 3000) bound.
+        // Written at exactly two sites, both in EnemyAI.js's isBoss branch.
+        this.bossGold = 0;
+        this.bossFragments = 0;
 
         // Rolling 10-second damage window. Each entry is { t, dmg }; we sum entries
         // whose timestamp is within the last DPS_WINDOW seconds. Lets the HUD's DPS
@@ -1760,6 +1769,10 @@ export class GameEngine {
             weaponKills: this.weaponKills || {},
             killedBy: this._lastDamageSource || null,
             fragments: this.runFragments || 0,
+            // The boss half of the two totals above. The adapter REFUSES to submit
+            // a run without these rather than guessing the split — src/api/adapter/run.js.
+            bossGold: this.bossGold || 0,
+            bossFragments: this.bossFragments || 0,
             // S7 §4f: difficulty + DD peak feed the server-side HEAT score bonus.
             difficulty: this.difficulty?.id || 'normal',
             ddPeakSpawnMult: this.ddPeakSpawnMult || 1.0,
