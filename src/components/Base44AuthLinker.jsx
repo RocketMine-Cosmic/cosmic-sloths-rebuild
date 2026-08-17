@@ -11,7 +11,14 @@ import { useOmenXAuth } from '@/lib/OmenXAuthContext';
 //   3. Base44'd in? → call linkWalletToUser once to attach wallet to user record
 
 export default function Base44AuthLinker() {
-    const { authData: omenxAuth } = useOmenXAuth();
+    // 🔴 base44Authed IS A DEPENDENCY, NOT DECORATION. This effect calls
+    // isAuthenticated() itself and returns early when it is false. Sign-in happens
+    // in a popup, so on the pass triggered by the wallet arriving the Supabase
+    // session may not be readable yet — it returned, never dispatched
+    // `walletLinked`, and SaveManager stayed bailed with its sync loop unstarted.
+    // Taking base44Authed from the context means this re-runs the moment the
+    // session actually becomes visible. See OmenXAuthContext for the full chain.
+    const { authData: omenxAuth, base44Authed } = useOmenXAuth();
     const linkedWalletRef = useRef(null);
     // Bumped by the SyncStatusBanner "Retry" button via a window event — re-runs
     // the link effect without forcing a full page reload (kinder on iOS Safari,
@@ -106,7 +113,7 @@ export default function Base44AuthLinker() {
         })();
 
         return () => { cancelled = true; };
-    }, [omenxAuth?.walletAddress, omenxAuth?.accessToken, retryTick]);
+    }, [omenxAuth?.walletAddress, omenxAuth?.accessToken, base44Authed, retryTick]);
 
     return null;
 }

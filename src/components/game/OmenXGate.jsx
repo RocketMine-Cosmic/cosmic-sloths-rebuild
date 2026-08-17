@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import SpaceBackground from './SpaceBackground';
 import { useOmenXAuth } from '@/lib/OmenXAuthContext';
-import { base44 } from '@/api/base44Client';
 import { omenx, getRedirectUri } from '@/lib/omenx';
 import { waitForOmenAuth, isPopupBlockedError } from '@/lib/awaitOmenAuth';
 
@@ -20,35 +19,41 @@ export default function OmenXGate({ children, isCarousel }) {
     // Both signed in + wallet connected → render children
     if (base44Authed && auth) return children;
 
-    // Determine gate messaging + action based on which step is missing.
-    // Users coming from the Omen website already have OmenX auth (delivered via
-    // postMessage from parent) but no Base44 auth — they need a clear CTA right
-    // here, otherwise they don't know wallet linking requires a separate sign-in.
+    /**
+     * 🔴 ONE SIGNED-OUT STATE, NOT TWO — Rob, 2026-08-17: *"that button is now
+     * wrong it should now just be sign in to omen or log out no seperate sign in
+     * or connect wallet."*
+     *
+     * The old ladder had a "Sign In Required" step and a "Wallet Required" step,
+     * and its comment explained that Omen-website players *"don't know wallet
+     * linking requires a separate sign-in"*. **That is a base44 description of a
+     * base44 world.** There, a base44 ACCOUNT and an Omen WALLET were separate
+     * identities needing a link step. In the rebuild the wallet IS the identity
+     * (D-141/D-145; `registry.js` retires linkWalletToUser as *"Superseded by
+     * omen-auth… the wallet IS the identity here"*), and one `omen-auth` round
+     * trip returns the Supabase session and the Omen tokens together.
+     *
+     * ⚠️ AND BOTH CTAs RAN THE SAME CALL. `base44.auth.redirectToLogin()` is, in
+     * the adapter, literally `omenx.authenticate({ redirectUri: getRedirectUri(),
+     * enablePKCE: true })` — the identical line the "Connect Wallet" branch used.
+     * So the intermediate screen asked the player to perform a second step that
+     * does not exist, and doing it re-ran the flow they had just finished.
+     *
+     * 🟢 A useful side effect: the copy *"Your wallet is connected, but you need
+     * to sign in"* is what proved 046's diagnosis — it can only render when
+     * authData is present and base44Authed is stale-false. Now that the stale
+     * boolean is fixed, the state it described is gone too.
+     */
     let icon, title, subtitle, ctaLabel, ctaAction;
     if (base44Authed === null) {
         icon = '⏳';
         title = 'Loading';
         subtitle = 'Checking your session…';
-    } else if (!base44Authed) {
+    } else {
         icon = '🚀';
         title = 'Sign In Required';
-        subtitle = auth
-            ? 'Your wallet is connected, but you need to sign in to link it and enable cloud saves.'
-            : 'Sign in to access this area.';
-        ctaLabel = 'Sign In';
-        ctaAction = async () => {
-            try {
-                const result = base44.auth.redirectToLogin(window.location.href);
-                if (result && typeof result.then === 'function') await result;
-            } catch (err) {
-                console.error('[OmenXGate] redirectToLogin failed:', err);
-            }
-        };
-    } else {
-        icon = '🔗';
-        title = 'Wallet Required';
-        subtitle = 'Connect your OmenX wallet to access this area.';
-        ctaLabel = ctaLoading ? 'Connecting…' : 'Connect Wallet';
+        subtitle = 'Sign in to Omen to access this area.';
+        ctaLabel = ctaLoading ? 'Signing in…' : 'Sign In to Omen';
         /**
          * 🔴 DO NOT await omenx.authenticate() AS THE SUCCESS SIGNAL — IT NEVER
          * RESOLVES HERE, BY DESIGN. It waits for `omenx_oauth_callback_<state>` so it
@@ -89,8 +94,8 @@ export default function OmenXGate({ children, isCarousel }) {
             if (landed?.walletAddress) return; // context updates and the gate opens itself
             setCtaError(
                 popupBlocked
-                    ? 'Connect didn\'t open — pop-ups are blocked for this site. Allow pop-ups and tap Connect Wallet again.'
-                    : 'Sign-in didn\'t complete. If you closed the Omen window, tap Connect Wallet to try again.'
+                    ? 'Sign-in didn\'t open — pop-ups are blocked for this site. Allow pop-ups and tap Sign In to Omen again.'
+                    : 'Sign-in didn\'t complete. If you closed the Omen window, tap Sign In to Omen to try again.'
             );
         };
     }

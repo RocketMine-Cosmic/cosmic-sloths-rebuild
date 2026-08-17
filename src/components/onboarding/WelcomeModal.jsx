@@ -25,13 +25,13 @@ const STEPS = [
         icon: Wallet,
         accent: 'text-amber-300',
         border: 'border-amber-500/40',
-        title: 'Sign In & Connect Wallet',
+        title: 'Sign In to Omen',
         body: (
             <>
-                <p>On the <span className="text-white font-bold">Main Menu</span>, tap the button at the bottom to <span className="text-cyan-300 font-bold">Sign In</span>, then <span className="text-purple-300 font-bold">Connect Wallet</span> to link your OMENX wallet.</p>
+                <p>On the <span className="text-white font-bold">Main Menu</span>, tap <span className="text-purple-300 font-bold">Sign In to Omen</span> at the bottom. One sign-in — your Omen wallet is your account, so there is no second step.</p>
                 <p className="mt-2 text-amber-200/90 bg-amber-950/40 border border-amber-700/40 rounded px-2 py-1.5 text-xs">🔒 Currently gated to <span className="font-bold">Early Adopters NFT</span> holders on Omen.</p>
                 <p className="mt-2 text-slate-400 text-xs">No Omen account yet? Sign up free at <a href="https://app.omen.foundation?ref=D2EBE0BE67BAAE" target="_blank" rel="noopener noreferrer" className="text-cyan-300 font-bold underline hover:text-cyan-200">Omen Foundation</a>, then grab the Early Adopters NFT to unlock access.</p>
-                <p className="mt-2 text-slate-400">Connecting saves your progress to your wallet and makes you eligible for weekly OMENX rewards.</p>
+                <p className="mt-2 text-slate-400">Signing in saves your progress to your wallet and makes you eligible for weekly OMENX rewards.</p>
             </>
         ),
     },

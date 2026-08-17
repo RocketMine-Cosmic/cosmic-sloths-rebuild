@@ -54,22 +54,6 @@ export default function OmenXAuthButton({ fullWidth = false, onAuthChange }) {
         }
     }, [authData]);
 
-    const handleBase44SignIn = async () => {
-        setLoading(true);
-        // redirectToLogin can be async and may reject silently — if so the button
-        // appears dead. Await it, log any error, and reset the loading state so
-        // the user can tap again instead of staring at a stuck "Redirecting…".
-        try {
-            const result = base44.auth.redirectToLogin(window.location.href);
-            if (result && typeof result.then === 'function') await result;
-            // If we're still here after a brief moment, something went wrong with
-            // the redirect — reset so the user can retry.
-            setTimeout(() => setLoading(false), 4000);
-        } catch (err) {
-            console.error('[OmenXAuthButton] redirectToLogin failed:', err);
-            setLoading(false);
-        }
-    };
 
     const handleConnectWallet = async () => {
         setLoading(true);
@@ -107,14 +91,14 @@ export default function OmenXAuthButton({ fullWidth = false, onAuthChange }) {
         setLoading(false);
 
         if (landed?.walletAddress) {
-            setSuccessMsg('✓ Wallet connected');
+            setSuccessMsg('✓ Signed in');
             setTimeout(() => setSuccessMsg(''), 4000);
             return;
         }
         setSuccessMsg(
             popupBlocked
-                ? 'Pop-ups are blocked — allow them for this site and tap Connect again.'
-                : 'Sign-in didn\'t complete. Tap Connect Wallet to try again.'
+                ? 'Pop-ups are blocked — allow them for this site and sign in again.'
+                : 'Sign-in didn\'t complete. Tap Sign In to Omen to try again.'
         );
         setTimeout(() => setSuccessMsg(''), 8000);
     };
@@ -135,32 +119,48 @@ export default function OmenXAuthButton({ fullWidth = false, onAuthChange }) {
         window.location.reload();
     };
 
-    // Determine state
-    // 1. checking → loader
-    // 2. !base44Authed → "Sign In"
-    // 3. base44Authed && !authData → "Connect Wallet"
-    // 4. base44Authed && authData → "Logout"
+    /**
+     * 🔴 TWO STATES, NOT FOUR — Rob, 2026-08-17: *"that button is now wrong it
+     * should now just be sign in to omen or log out no seperate sign in or
+     * connect wallet."* He is right, and the proof is in the adapter:
+     *
+     *     export async function redirectToLogin(_returnTo) {
+     *       return omenx.authenticate({ redirectUri: getRedirectUri(), enablePKCE: true });
+     *     }
+     *
+     * **"Sign In" and "Connect Wallet" were byte-for-byte the same call.** The
+     * old four-state ladder is a base44 fiction: there, a base44 ACCOUNT and an
+     * Omen WALLET were separate identities that had to be linked, so the player
+     * genuinely did sign in and then connect. In the rebuild **the wallet IS the
+     * identity** (D-141/D-145 — `registry.js` marks linkWalletToUser
+     * *"Superseded by omen-auth… the wallet IS the identity here"*), and a single
+     * `omen-auth` round trip returns the Supabase session and the Omen tokens
+     * together.
+     *
+     * ⚠️ AND IT WAS WORSE THAN UNTIDY: the intermediate state told the player to
+     * do a second thing that does not exist. Following that instruction just
+     * re-ran the OAuth flow they had already completed.
+     *
+     * So: checking → signed in → not signed in. `handleBase44SignIn` is gone
+     * entirely; there is one sign-in path and it is the Omen one.
+     */
     let label, icon, onClick, theme;
+    const signedIn = base44Authed && authData;
     if (checkingBase44) {
         label = 'Loading…';
         icon = '⏳';
         onClick = () => {};
         theme = 'bg-slate-800/40 border-slate-600/60 text-slate-300';
-    } else if (!base44Authed) {
-        label = loading ? 'Redirecting…' : 'Sign In';
-        icon = '🚀';
-        onClick = handleBase44SignIn;
-        theme = 'bg-cyan-900/20 hover:bg-cyan-900/40 border-cyan-500/60 hover:border-cyan-400 text-cyan-100 hover:text-white shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]';
-    } else if (!authData) {
-        label = loading ? 'Connecting…' : 'Connect Wallet';
-        icon = '🔗';
-        onClick = handleConnectWallet;
-        theme = 'bg-purple-900/20 hover:bg-purple-900/40 border-purple-500/60 hover:border-purple-400 text-purple-100 hover:text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)]';
-    } else {
+    } else if (signedIn) {
         label = 'Logout';
         icon = '⚡';
         onClick = handleLogout;
         theme = 'bg-[#F59E0B]/20 hover:bg-[#F59E0B]/40 border-[#F59E0B]/60 hover:border-[#F59E0B] text-amber-100 hover:text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.6)]';
+    } else {
+        label = loading ? 'Signing in…' : 'Sign In to Omen';
+        icon = '🚀';
+        onClick = handleConnectWallet;
+        theme = 'bg-purple-900/20 hover:bg-purple-900/40 border-purple-500/60 hover:border-purple-400 text-purple-100 hover:text-white shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)]';
     }
 
     return (
